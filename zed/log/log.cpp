@@ -94,33 +94,34 @@ void LogEvent::addFormattedTime()
 
 void LogEvent::addFileInformation()
 {
-    m_ss << '[' << m_file_name << ":" << m_line;
     if (m_level <= LogLevel::DEBUG) {
-        m_ss << '-' << m_func_name;
+        m_ss << '[' << m_file_name << ":" << m_line;
+        if (m_level <= LogLevel::DEBUG) {
+            m_ss << '-' << m_func_name;
+        }
+        m_ss << "] ";
     }
-    m_ss << "]\t";
 }
 
-std::string_view LogEvent::setColor()
+void LogEvent::setColor()
 {
     switch (m_level) {
     case LogLevel::DEBUG:
-        return "\e[1;34m";
+        m_ss << "\e[1;34m";
         break;
     case LogLevel::INFO:
-        return "\e[1:36m";
+        // m_ss << "\e[1;37m";
         break;
     case LogLevel::WARN:
-        return "\e[1;33m";
+        m_ss << "\e[1;33m";
         break;
     case LogLevel::ERROR:
-        return "\e[1;31m";
+        m_ss << "\e[1;31m";
         break;
     case LogLevel::FATAL:
-        return "\e[1:35m";
+        m_ss << "\e[1;35m";
         break;
     default:
-        return "\e[0m";
         break;
     }
 }

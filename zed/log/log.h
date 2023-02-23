@@ -53,10 +53,10 @@ public:
 
 private:
     void addFormattedTime();
-    void addLevel() { m_ss << "[" << LogLevel::Tostring(m_level) << "]"; }
+    void addLevel() { m_ss << "[" << LogLevel::Tostring(m_level) << "]\t"; }
     void addTid() { m_ss << '[' << current_thread::GetTid() << "]\t"; }
     void addFileInformation();
-    std::string_view setColor();
+    void setColor();
 
 private:
     LogLevel::Level m_level {};
