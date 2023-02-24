@@ -1,10 +1,10 @@
-#include "zed/comm/thread.h"
+#include "zed/thread.h"
 
 #include <atomic>
 #include <iostream>
 #include <vector>
 
-#include "zed/comm/test_util.h"
+#include "tests/test_util.h"
 
 using namespace zed;
 

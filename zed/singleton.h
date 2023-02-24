@@ -1,13 +1,12 @@
-#ifndef ZED_COMM_SINGLETON_H_
-#define ZED_COMM_SINGLETON_H_
+#ifndef ZED_SINGLETON_H_
+#define ZED_SINGLETON_H_
 
 namespace zed {
 
 template <class T>
 class Singleton {
 public:
-    static T* instance()
-    {
+    static T *Getinstance() {
         static T obj;
         return &obj;
     }
@@ -15,4 +14,4 @@ public:
 
 } // namespace zed
 
-#endif // ZED_COMM_SINGLETON_H_
+#endif // ZED_SINGLETON_H_

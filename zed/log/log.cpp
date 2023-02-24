@@ -1,27 +1,24 @@
 #include <chrono>
 #include <zed/log/log.h>
 
-#include <zed/comm/thread.h>
+#include <zed/thread.h>
 
 namespace zed {
 
-LogLevel::Level Logger::g_level { LogLevel::DEBUG };
+LogLevel::Level Logger::g_level{LogLevel::DEBUG};
 
 static thread_local char formatted_time[64];
-static thread_local time_t t_last_second { 0 };
+static thread_local time_t t_last_second{0};
 
-void Logger::SetLevel(LogLevel::Level level)
-{
+void Logger::SetLevel(LogLevel::Level level) {
     g_level = level;
 }
 
-LogLevel::Level Logger::GetLevel()
-{
+LogLevel::Level Logger::GetLevel() {
     return g_level;
 }
 
-std::string_view LogLevel::Tostring(LogLevel::Level level)
-{
+std::string_view LogLevel::Tostring(LogLevel::Level level) {
     switch (level) {
     case LogLevel::DEBUG:
         return "DEBUG";
@@ -38,8 +35,7 @@ std::string_view LogLevel::Tostring(LogLevel::Level level)
     }
 }
 
-LogLevel::Level LogLevel::Fromstring(std::string& str)
-{
+LogLevel::Level LogLevel::Fromstring(std::string &str) {
     std::transform(str.begin(), str.end(), str.begin(), [](char c) { return toupper(c); });
     if (str == "DEBUG") {
         return LogLevel::DEBUG;
@@ -56,12 +52,11 @@ LogLevel::Level LogLevel::Fromstring(std::string& str)
     }
 }
 
-LogEvent::LogEvent(LogLevel::Level level, const char* file_name, int32_t line, const char* func_name)
-    : m_level(level)
-    , m_file_name(file_name)
-    , m_line(line)
-    , m_func_name(func_name)
-{
+LogEvent::LogEvent(LogLevel::Level level,
+                   const char *file_name,
+                   int32_t line,
+                   const char *func_name)
+    : m_level(level), m_file_name(file_name), m_line(line), m_func_name(func_name) {
     setColor();
     addFormattedTime();
     addLevel();
@@ -69,15 +64,13 @@ LogEvent::LogEvent(LogLevel::Level level, const char* file_name, int32_t line, c
     addFileInformation();
 }
 
-LogEvent::~LogEvent()
-{
+LogEvent::~LogEvent() {
     m_ss << "\n"
          << "\e[0m";
-    LOG::instance()->log(std::move(m_ss.str()));
+    LoggerManager::Getinstance()->log(std::move(m_ss.str()));
 }
 
-void LogEvent::addFormattedTime()
-{
+void LogEvent::addFormattedTime() {
     timeval tv_time;
     gettimeofday(&tv_time, nullptr);
     auto cur_second = tv_time.tv_sec;
@@ -86,14 +79,13 @@ void LogEvent::addFormattedTime()
         t_last_second = cur_second;
         struct tm tm_time;
         ::localtime_r(&cur_second, &tm_time);
-        const char* format = "%Y-%m-%d %H:%M:%S";
+        const char *format = "%Y-%m-%d %H:%M:%S";
         ::strftime(formatted_time, sizeof(formatted_time), format, &tm_time);
     }
     m_ss << '[' << formatted_time << '.' << cur_microsecond << "]\t";
 }
 
-void LogEvent::addFileInformation()
-{
+void LogEvent::addFileInformation() {
     if (m_level <= LogLevel::DEBUG) {
         m_ss << '[' << m_file_name << ":" << m_line;
         if (m_level <= LogLevel::DEBUG) {
@@ -103,8 +95,7 @@ void LogEvent::addFileInformation()
     }
 }
 
-void LogEvent::setColor()
-{
+void LogEvent::setColor() {
     switch (m_level) {
     case LogLevel::DEBUG:
         m_ss << "\e[1;34m";
@@ -126,14 +117,12 @@ void LogEvent::setColor()
     }
 }
 
-void Logger::addAppender(LogAppender::ptr appender)
-{
+void Logger::addAppender(LogAppender::Ptr appender) {
     std::lock_guard<std::mutex> lock(m_appenders_mutex);
     m_appenders.push_back(appender);
 }
 
-void Logger::delAppender(LogAppender::ptr appender)
-{
+void Logger::delAppender(LogAppender::Ptr appender) {
     std::lock_guard<std::mutex> lock(m_appenders_mutex);
     for (auto it = m_appenders.begin(); it != m_appenders.end(); ++it) {
         if (*it == appender) {
@@ -143,47 +132,41 @@ void Logger::delAppender(LogAppender::ptr appender)
     }
 }
 
-void Logger::clearAppenders()
-{
+void Logger::clearAppenders() {
     std::lock_guard<std::mutex> lock(m_appenders_mutex);
     m_appenders.clear();
 }
 
-void Logger::log(std::string msg)
-{
+void Logger::log(std::string msg) {
     std::lock_guard<std::mutex> lock(m_appenders_mutex);
-    for (auto& appender : m_appenders) {
+    for (auto &appender : m_appenders) {
         appender->log(msg);
     }
 }
 
-void StdoutLogAppender::log(const std::string& msg)
-{
+void StdoutLogAppender::log(const std::string &msg) {
     ::printf("%s", msg.c_str());
 }
 
-FileLogAppender::FileLogAppender(const std::string& base_name,
-    off_t roll_size,
-    int flush_interval,
-    int check_every_n)
-    : m_file(base_name, roll_size, flush_interval, check_every_n)
-    , m_current_buffer { new Buffer }
-{
+FileLogAppender::FileLogAppender(const std::string &base_name,
+                                 off_t roll_size,
+                                 int flush_interval,
+                                 int check_every_n)
+    : m_file(new LogFile(base_name, roll_size, flush_interval, check_every_n)),
+      m_current_buffer{new Buffer} {
     for (int i = 0; i < 2; ++i) {
         m_empty_buffers.emplace_back(new Buffer);
     }
     m_thread = Thread(std::bind(&FileLogAppender::threadFunc, this), "log_thread");
 }
 
-FileLogAppender::~FileLogAppender()
-{
+FileLogAppender::~FileLogAppender() {
     if (m_running) {
         stop();
     }
 }
 
-void FileLogAppender::log(const std::string& msg)
-{
+void FileLogAppender::log(const std::string &msg) {
     std::lock_guard<std::mutex> lock(m_buffer_mutex);
     if (m_current_buffer->avail() > msg.size()) {
         m_current_buffer->append(msg);
@@ -200,15 +183,13 @@ void FileLogAppender::log(const std::string& msg)
     }
 }
 
-void FileLogAppender::stop()
-{
+void FileLogAppender::stop() {
     m_running = false;
     m_cond.notify_one();
     m_thread.join();
 }
 
-void FileLogAppender::threadFunc()
-{
+void FileLogAppender::threadFunc() {
     while (m_running) {
         {
             std::unique_lock<std::mutex> lock(m_buffer_mutex);
@@ -227,19 +208,19 @@ void FileLogAppender::threadFunc()
         if (m_full_buffers.size() > 25) {
             char buf[256];
             ::snprintf(buf, sizeof(buf), "Dropped log messages  %zd larger buffers\n",
-                m_full_buffers.size() - 2);
+                       m_full_buffers.size() - 2);
             m_full_buffers.resize(2);
         }
 
-        for (auto& buffer : m_full_buffers) {
-            m_file.append(buffer->data(), buffer->size());
+        for (auto &buffer : m_full_buffers) {
+            m_file->append(buffer->data(), buffer->size());
             buffer->reset();
         }
         if (m_full_buffers.size() > 2) {
             m_full_buffers.resize(2);
         }
 
-        m_file.flush();
+        m_file->flush();
         m_empty_buffers.splice(m_empty_buffers.end(), m_full_buffers);
     }
 }

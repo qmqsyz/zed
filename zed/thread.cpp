@@ -1,4 +1,4 @@
-#include "zed/comm/thread.h"
+#include "zed/thread.h"
 
 #include <future>
 

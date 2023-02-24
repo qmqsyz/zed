@@ -5,11 +5,11 @@
 #include <sstream>
 #include <string_view>
 
-#include "zed/comm/singleton.h"
-#include "zed/comm/thread.h"
 #include "zed/log/log_appender.h"
 #include "zed/log/log_buffer.h"
 #include "zed/log/log_file.h"
+#include "zed/singleton.h"
+#include "zed/thread.h"
 
 #define LOG_EVENT(level)             \
     if (Logger::GetLevel() <= level) \
@@ -25,31 +25,20 @@ namespace zed {
 
 class LogLevel {
 public:
-    enum Level {
-        UNKNOWN = 1,
-        DEBUG,
-        INFO,
-        WARN,
-        ERROR,
-        FATAL
-    };
+    enum Level { UNKNOWN = 1, DEBUG, INFO, WARN, ERROR, FATAL };
 
     static std::string_view Tostring(LogLevel::Level level);
-    static LogLevel::Level Fromstring(std::string& str);
+    static LogLevel::Level Fromstring(std::string &str);
 };
 
 class LogEvent {
 public:
-    using ptr = std::shared_ptr<LogEvent>;
+    using Ptr = std::shared_ptr<LogEvent>;
 
-    LogEvent(
-        LogLevel::Level level,
-        const char* file_name,
-        int32_t line,
-        const char* func_name);
+    LogEvent(LogLevel::Level level, const char *file_name, int32_t line, const char *func_name);
     ~LogEvent();
 
-    std::stringstream& getStringStream() { return m_ss; };
+    std::stringstream &getStringStream() { return m_ss; };
 
 private:
     void addFormattedTime();
@@ -59,22 +48,22 @@ private:
     void setColor();
 
 private:
-    LogLevel::Level m_level {};
-    const char* m_file_name { nullptr };
-    int32_t m_line { 0 };
-    const char* m_func_name { nullptr };
-    std::stringstream m_ss {};
+    LogLevel::Level m_level{};
+    const char *m_file_name{nullptr};
+    int32_t m_line{0};
+    const char *m_func_name{nullptr};
+    std::stringstream m_ss{};
 };
 
 class Logger : Noncopyable {
 public:
-    using ptr = std::shared_ptr<Logger>;
+    using Ptr = std::shared_ptr<Logger>;
 
     Logger() = default;
     ~Logger() = default;
 
-    void addAppender(LogAppender::ptr appender);
-    void delAppender(LogAppender::ptr appender);
+    void addAppender(LogAppender::Ptr appender);
+    void delAppender(LogAppender::Ptr appender);
     void clearAppenders();
 
     void log(std::string msg);
@@ -87,11 +76,11 @@ private:
     static LogLevel::Level g_level;
 
 private:
-    std::mutex m_appenders_mutex {};
-    std::list<LogAppender::ptr> m_appenders {};
+    std::mutex m_appenders_mutex{};
+    std::list<LogAppender::Ptr> m_appenders{};
 };
 
-using LOG = Singleton<Logger>;
+using LoggerManager = Singleton<Logger>;
 
 } // namespace zed
 

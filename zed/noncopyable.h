@@ -1,5 +1,5 @@
-#ifndef ZED_COMM_NONCOPYABLE_H_
-#define ZED_COMM_NONCOPYABLE_H_
+#ifndef ZED_NONCOPYABLE_H_
+#define ZED_NONCOPYABLE_H_
 
 namespace zed {
 
@@ -15,4 +15,4 @@ protected:
 
 } // namespace zed
 
-#endif // ZED_COMM_NONCOPYABLE_H_
+#endif // ZED_NONCOPYABLE_H_

@@ -1,12 +1,12 @@
-#ifndef ZED_COMM_THREAD_H_
-#define ZED_COMM_THREAD_H_
+#ifndef ZED_THREAD_H_
+#define ZED_THREAD_H_
 
 #include <atomic>
 #include <functional>
 #include <memory>
 #include <thread>
 
-#include "zed/comm/noncopyable.h"
+#include "zed/noncopyable.h"
 
 namespace zed {
 
@@ -51,4 +51,4 @@ private:
 
 } // namespace zed
 
-#endif // ZED_COMM_THREAD_H_
+#endif // ZED_THREAD_H_
