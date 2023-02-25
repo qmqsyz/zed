@@ -5,8 +5,9 @@
 #include <memory>
 #include <shared_mutex>
 
-#include "zed/lexical_cast.h"
+#include "zed/lexical_cast.hpp"
 #include "zed/log/log.h"
+#include "zed/util.h"
 
 namespace zed {
 
@@ -28,7 +29,7 @@ public:
     virtual bool fromString(const std::string &str) = 0;
     virtual std::string_view getTypeName() const = 0;
 
-private:
+protected:
     std::string m_name;
     std::string m_description;
 };
@@ -50,7 +51,7 @@ public:
             return ToStr()(m_value);
         } catch (std::exception &e) {
             LOG_ERROR << "ConfigVar::toString exception " << e.what()
-                      << " convert: " << typeid(T).name() << " to string"
+                      << " convert: " << getTypeName() << " to string"
                       << " name=" << m_name;
         }
         return "";
@@ -62,7 +63,7 @@ public:
             return true;
         } catch (std::exception &e) {
             LOG_ERROR << "ConfigVar::fromString exception " << e.what() << " convert: string to "
-                      << typeid(T).name() << " name=" << m_name << " value=" << m_value;
+                      << getTypeName() << " name=" << m_name << " - " << str;
         }
         return false;
     }
@@ -86,7 +87,7 @@ public:
         m_value = value;
     }
 
-    std::string_view getTypeName() const override { return typeid(T).name(); }
+    std::string_view getTypeName() const override { return GetTypeName<T>(); }
 
     uint64_t addListener(Callback cb) {
         static uint64_t s_fun_id = 0;
@@ -134,7 +135,7 @@ public:
                 LOG_INFO << "Lookup name=" << name << " exists";
                 return tmp;
             } else {
-                LOG_ERROR << "Lookup name=" << name << " exists but type not " << typeid(T).name()
+                LOG_ERROR << "Lookup name=" << name << " exists but type not " << GetTypeName<T>()
                           << "real_type=" << it->second->getTypeName() << " "
                           << it->second->toString();
                 return nullptr;
@@ -164,7 +165,7 @@ public:
     static void LoadFromYaml(const YAML::Node &root);
     static void LoadFromConfigDirectory(const std::string &path, bool force = false);
     static ConfigVarBase::Ptr LookupBase(const std::string &name);
-    static void visit(std::function<void(ConfigVarBase::Ptr)> cb);
+    static void Visit(std::function<void(ConfigVarBase::Ptr)> cb);
 
 private:
     static ConfigVarMap &GetDatas() {

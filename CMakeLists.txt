@@ -1,19 +1,28 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.26)
 
 project(ZED LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(CMAKE_CXX_EXTENSIONS on)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
- if(NOT DEFINED CMAKE_BUILD_TYPE)
+if(NOT DEFINED CMAKE_BUILD_TYPE)
      set(CMAKE_BUILD_TYPE Release)
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR})
+find_package(yaml )
 
-# message("PROJECT_SOURCE_DIR:" ${PROJECT_SOURCE_DIR})
-# message("PROJECT_BINARY_DIR:" ${PROJECT_BINARY_DIR})
+
+
+include_directories(${PROJECT_SOURCE_DIR})
 
 add_subdirectory(zed)
 add_subdirectory(tests)
+
+set(LIBS 
+yaml-cpp
+pthread
+)
+
+target_link_libraries(zed_lib ${LIBS})

@@ -3,7 +3,6 @@
 #include <filesystem>
 
 #include "zed/env.h"
-#include "zed/util.h"
 
 namespace zed {
 
@@ -48,17 +47,17 @@ void Config::LoadFromYaml(const YAML::Node &root) {
 }
 
 void Config::LoadFromConfigDirectory(const std::string &path, bool force) {
-    const auto absolute_path = EnvironmentManager::Getinstance()->getAbsolutePath(path);
-    std::vector<std::string> files;
-    file_util::GetFilesWithExtension(absolute_path, ".yml", files);
+    const auto absolute_path = std::filesystem::absolute(path);
+    const auto files = file_util::GetFilesWithExtension(absolute_path, ".yaml");
 
     for (const auto &file : files) {
         try {
             YAML::Node root = YAML::LoadFile(file);
             LoadFromYaml(root);
             LOG_INFO << "Load config file:" << file << " succeeded";
-        } catch (...) {
-            LOG_ERROR << "Load config file:" << file << " failed";
+        } catch (const std::exception &e) {
+            LOG_ERROR << "Load config file failed! "
+                      << "because: " << e.what();
         }
     }
 }
@@ -69,7 +68,7 @@ ConfigVarBase::Ptr Config::LookupBase(const std::string &name) {
     return it == GetDatas().end() ? nullptr : it->second;
 }
 
-void Config::visit(std::function<void(ConfigVarBase::Ptr)> cb) {
+void Config::Visit(std::function<void(ConfigVarBase::Ptr)> cb) {
     std::shared_lock lock(GetMutex());
     ConfigVarMap &mp = GetDatas();
     for (auto &[_, value] : mp) {

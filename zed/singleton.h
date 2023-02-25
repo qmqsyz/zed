@@ -6,7 +6,7 @@ namespace zed {
 template <class T>
 class Singleton {
 public:
-    static T *Getinstance() {
+    static T *GetInstance() {
         static T obj;
         return &obj;
     }

@@ -11,8 +11,8 @@
 #include "zed/singleton.h"
 #include "zed/thread.h"
 
-#define LOG_EVENT(level)             \
-    if (Logger::GetLevel() <= level) \
+#define LOG_EVENT(level)                  \
+    if (zed::Logger::GetLevel() <= level) \
     zed::LogEvent(level, __FILE__, __LINE__, __func__).getStringStream()
 
 #define LOG_DEBUG LOG_EVENT(zed::LogLevel::DEBUG)

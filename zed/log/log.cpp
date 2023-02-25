@@ -67,7 +67,7 @@ LogEvent::LogEvent(LogLevel::Level level,
 LogEvent::~LogEvent() {
     m_ss << "\n"
          << "\e[0m";
-    LoggerManager::Getinstance()->log(std::move(m_ss.str()));
+    LoggerManager::GetInstance()->log(std::move(m_ss.str()));
 }
 
 void LogEvent::addFormattedTime() {

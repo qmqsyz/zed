@@ -45,6 +45,6 @@ int main(int argc, char **argv) {
     // StdoutLogAppender::Ptr p{new StdoutLogAppender};
     // LoggerManager::Getinstance()->addAppender(p);
     FileLogAppender::Ptr fp(new FileLogAppender("log_test"));
-    LoggerManager::Getinstance()->addAppender(fp);
+    LoggerManager::GetInstance()->addAppender(fp);
     CalTime(test, 1, argc > 1);
 }

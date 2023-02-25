@@ -15,20 +15,21 @@ public:
     bool init(int argc, char **argv);
 
     void add(const std::string &key, const std::string &value);
-    bool has(const std::string &key);
-    void erase(const std::string &key);
+    bool have(const std::string &key);
+    void del(const std::string &key);
     std::string get(const std::string &key, const std::string &default_value = "");
 
     void addHelp(const std::string &key, const std::string &description);
     void removeHelp(const std::string &key);
     void printHelp();
 
+    const std::filesystem::path &getExe() const { return m_exe; }
+    const std::filesystem::path &getCwd() const { return m_cwd; }
+
+    std::string getConfigPath();
+
     bool setEnv(const std::string_view &key, const std::string_view &value);
     std::string getEnv(const std::string_view &key, const std::string &default_value = "");
-
-    std::filesystem::path getAbsolutePath(const std::string &path) const;
-    std::string getAbsoluteWorkPath(const std::string &path) const;
-    std::string getConfigPath();
 
 private:
     std::shared_mutex m_rwmutex{}; // @brief read-write lock
@@ -36,7 +37,8 @@ private:
     std::map<std::string, std::string> m_args{};
     std::vector<std::pair<std::string, std::string>> m_helps{};
 
-    std::filesystem::path m_path;
+    std::filesystem::path m_exe{};
+    std::filesystem::path m_cwd{};
 };
 
 using EnvironmentManager = Singleton<Environment>;

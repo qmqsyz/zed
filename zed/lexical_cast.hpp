@@ -156,10 +156,10 @@ public:
         YAML::Node node = YAML::Load(str);
         std::map<std::string, T> mp;
         std::stringstream ss;
-        for (auto &[k, v] : mp) {
+        for (auto it = node.begin(); it != node.end(); ++it) {
             ss.str("");
-            ss << v;
-            mp.emplace(k, LexicalCast<std::string, T>()(ss.str()));
+            ss << it->second;
+            mp.emplace(it->first.Scalar(), LexicalCast<std::string, T>()(ss.str()));
         }
         return mp;
     }
@@ -188,10 +188,10 @@ public:
         YAML::Node node = YAML::Load(str);
         std::unordered_map<std::string, T> mp;
         std::stringstream ss;
-        for (auto &[k, v] : mp) {
+        for (auto it = node.begin(); it != node.end(); ++it) {
             ss.str("");
-            ss << v;
-            mp.emplace(k, LexicalCast<std::string, T>()(ss.str()));
+            ss << it->second;
+            mp.emplace(it->first.Scalar(), LexicalCast<std::string, T>()(ss.str()));
         }
         return mp;
     }
@@ -202,8 +202,8 @@ class LexicalCast<std::unordered_map<std::string, T>, std::string> {
 public:
     std::string operator()(const std::unordered_map<std::string, T> &mp) {
         YAML::Node node(YAML::NodeType::Map);
-        for (auto &[k, v] : mp) {
-            node[k] = YAML::Load(LexicalCast<T, std::string>()(v));
+        for (auto &[key, value] : mp) {
+            node[key] = YAML::Load(LexicalCast<T, std::string>()(value));
         }
         std::stringstream ss;
         ss << node;

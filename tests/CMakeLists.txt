@@ -1,5 +1,7 @@
-add_executable(thread_test thread_test.cpp)
-target_link_libraries(thread_test zed_lib)
+file(GLOB test_files PRIVATE ./*.cpp)
 
-add_executable(log_test log_test.cpp)
-target_link_libraries(log_test zed_lib)
+foreach(file IN LISTS test_files)
+    get_filename_component(basename ${file} NAME_WE)
+    add_executable(${basename} ${file})
+    target_link_libraries(${basename} zed_lib)
+endforeach()

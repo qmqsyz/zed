@@ -9,9 +9,31 @@
 namespace zed {
 
 bool Environment::init(int argc, char **argv) {
-    m_path = argv[0];
-    // TODO use getopt()
+    m_exe = std::filesystem::absolute(argv[0]);
+    m_cwd = std::filesystem::current_path();
 
+    char o;
+    const char *optstring{"c::d::f::p::"};
+    while ((o = ::getopt(argc, argv, optstring)) != -1) {
+        std::string arg{optarg == nullptr ? "" : optarg};
+        switch (o) {
+        case 'c':
+            add("c", arg);
+            break;
+        case 'f':
+            add("f", arg);
+            break; 
+        case 'd':
+            add("d", arg);
+            break;
+        case 'p':
+            add("p", arg);
+            break;
+        case '?':
+            LOG_ERROR << "Invalid arg index=" << optind << " arg=" << arg;
+            return false;
+        }
+    }
     return true;
 }
 
@@ -20,12 +42,12 @@ void Environment::add(const std::string &key, const std::string &value) {
     m_args.emplace(key, value);
 }
 
-bool Environment::has(const std::string &key) {
+bool Environment::have(const std::string &key) {
     std::shared_lock<std::shared_mutex> lock(m_rwmutex);
     return m_args.find(key) != m_args.end();
 }
 
-void Environment::erase(const std::string &key) {
+void Environment::del(const std::string &key) {
     std::lock_guard<std::shared_mutex> lock(m_rwmutex);
     m_args.erase(key);
 }
@@ -44,7 +66,7 @@ void Environment::addHelp(const std::string &key, const std::string &description
 
 void Environment::removeHelp(const std::string &key) {
     std::lock_guard<std::shared_mutex> lock(m_rwmutex);
-    for (auto it = m_helps.begin(); it != m_helps.end(); ++it) {
+    for (auto it = m_helps.begin(); it != m_helps.end();) {
         if (it->first == key) {
             it = m_helps.erase(it);
         } else {
@@ -55,7 +77,7 @@ void Environment::removeHelp(const std::string &key) {
 
 void Environment::printHelp() {
     std::shared_lock<std::shared_mutex> lock(m_rwmutex);
-    ::printf("Usage: %s [options]\n", m_path.c_str());
+    ::printf("Usage: %s [options]\n", m_exe.filename().c_str());
     for (auto &[key, description] : m_helps) {
         ::printf("-%s:%s\n", key.c_str(), description.c_str());
     }
@@ -73,23 +95,8 @@ std::string Environment::getEnv(const std::string_view &key, const std::string &
     return value;
 }
 
-std::filesystem::path Environment::getAbsolutePath(const std::string &path) const {
-    return std::filesystem::absolute(path);
-}
-
-std::string Environment::getAbsoluteWorkPath(const std::string &path) const {
-    if (path.empty()) {
-        return "/";
-    }
-    if (path[0] == '/') {
-        return path;
-    }
-    auto g_server_workpath = Config::Lookup<std::string>("server.work_path");
-    return g_server_workpath->getValue() + "/" + path;
-}
-
 std::string Environment::getConfigPath() {
-    return getAbsolutePath(get("c", "conf"));
+    return std::filesystem::absolute(get("c", "conf"));
 }
 
 } // namespace zed
