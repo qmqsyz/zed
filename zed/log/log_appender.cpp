@@ -2,29 +2,33 @@
 
 namespace zed {
 
-void StdoutLogAppender::log(const std::string &msg) {
+void StdoutLogAppender::log(const std::string& msg)
+{
     ::printf("%s", msg.c_str());
 }
 
-FileLogAppender::FileLogAppender(const std::string &base_name,
-                                 off_t roll_size,
-                                 int flush_interval,
-                                 int check_every_n)
-    : m_file{new LogFile(base_name, roll_size, flush_interval, check_every_n)},
-      m_current_buffer{new Buffer} {
+FileLogAppender::FileLogAppender(const std::string& base_name,
+                                 off_t              roll_size,
+                                 int                flush_interval,
+                                 int                check_every_n)
+    : m_file {new LogFile(base_name, roll_size, flush_interval, check_every_n)}
+    , m_current_buffer {new Buffer}
+{
     for (int i = 0; i < 2; ++i) {
         m_empty_buffers.emplace_back(new Buffer);
     }
-    m_thread = Thread(std::bind(&FileLogAppender::threadFunc, this), "log_thread");
+    m_thread = Thread::Ptr(new Thread(std::bind(&FileLogAppender::threadFunc, this), "log_thread"));
 }
 
-FileLogAppender::~FileLogAppender() {
+FileLogAppender::~FileLogAppender()
+{
     if (m_running) {
         stop();
     }
 }
 
-void FileLogAppender::log(const std::string &msg) {
+void FileLogAppender::log(const std::string& msg)
+{
     std::lock_guard<std::mutex> lock(m_buffer_mutex);
     if (m_current_buffer->avail() > msg.size()) {
         m_current_buffer->append(msg);
@@ -41,13 +45,15 @@ void FileLogAppender::log(const std::string &msg) {
     }
 }
 
-void FileLogAppender::stop() {
+void FileLogAppender::stop()
+{
     m_running = false;
     m_cond.notify_one();
-    m_thread.join();
+    m_thread->join();
 }
 
-void FileLogAppender::threadFunc() {
+void FileLogAppender::threadFunc()
+{
     while (m_running) {
         {
             std::unique_lock<std::mutex> lock(m_buffer_mutex);
@@ -70,7 +76,7 @@ void FileLogAppender::threadFunc() {
             m_full_buffers.resize(2);
         }
 
-        for (auto &buffer : m_full_buffers) {
+        for (auto& buffer : m_full_buffers) {
             m_file->append(buffer->data(), buffer->size());
             buffer->reset();
         }

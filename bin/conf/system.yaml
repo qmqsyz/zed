@@ -1,3 +1,0 @@
-server:
-    work_path: /apps/work/zed
-    pid_file: zed.pid

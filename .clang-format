@@ -1,7 +1,7 @@
 # 语言: None, Cpp, Java, JavaScript, ObjC, Proto, TableGen, TextProto
 Language: Cpp
 
-BasedOnStyle: LLVM
+BasedOnStyle: WebKit
 
 # 左括号(左圆括号、左尖括号、左方括号)后的对齐: Align, DontAlign, AlwaysBreak(总是在左括号后换行)
 AlignAfterOpenBracket: Align
@@ -16,7 +16,7 @@ SortIncludes: true
 # AlignConsecutiveAssignments: false
 
 # 连续声明时，对齐所有声明的变量名
-AlignConsecutiveDeclarations: false
+AlignConsecutiveDeclarations: true
 
 # 用于在使用反斜杠换行中对齐反斜杠的选项
 AlignEscapedNewlines: Left

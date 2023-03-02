@@ -6,9 +6,9 @@
 #include <memory>
 #include <mutex>
 
+#include "zed/comm/thread.h"
 #include "zed/log/log_buffer.h"
 #include "zed/log/log_file.h"
-#include "zed/thread.h"
 
 namespace zed {
 
@@ -17,7 +17,7 @@ public:
     using Ptr = std::shared_ptr<LogAppender>;
 
     virtual ~LogAppender() = default;
-    virtual void log(const std::string &msg) = 0;
+    virtual void log(const std::string& msg) = 0;
 
 protected:
 };
@@ -26,20 +26,20 @@ class StdoutLogAppender : public LogAppender {
 public:
     using Ptr = std::shared_ptr<StdoutLogAppender>;
 
-    void log(const std::string &msg) override;
+    void log(const std::string& msg) override;
 };
 
 class FileLogAppender : public LogAppender {
 public:
     using Ptr = std::shared_ptr<FileLogAppender>;
 
-    FileLogAppender(const std::string &base_name,
-                    off_t roll_size = 100 * 1000 * 1000,
-                    int flush_interval = 3,
-                    int check_every_n = 1024);
+    FileLogAppender(const std::string& base_name,
+                    off_t              roll_size = 100 * 1000 * 1000,
+                    int                flush_interval = 3,
+                    int                check_every_n = 1024);
     ~FileLogAppender();
 
-    void log(const std::string &msg) override;
+    void log(const std::string& msg) override;
     void stop();
 
 private:
@@ -47,14 +47,14 @@ private:
 
 private:
     using Buffer = LogBuffer<kLargeBuffer>;
-    LogFile::Ptr m_file;
-    Buffer::Ptr m_current_buffer{};
-    std::list<Buffer::Ptr> m_empty_buffers{};
-    std::list<Buffer::Ptr> m_full_buffers{};
-    std::mutex m_buffer_mutex{};
-    std::condition_variable m_cond{};
-    Thread m_thread{};
-    std::atomic<bool> m_running{true};
+    LogFile::Ptr            m_file;
+    Buffer::Ptr             m_current_buffer {};
+    std::list<Buffer::Ptr>  m_empty_buffers {};
+    std::list<Buffer::Ptr>  m_full_buffers {};
+    std::mutex              m_buffer_mutex {};
+    std::condition_variable m_cond {};
+    Thread::Ptr             m_thread {};
+    std::atomic<bool>       m_running {true};
 };
 
 } // namespace zed
