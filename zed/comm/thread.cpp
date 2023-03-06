@@ -1,4 +1,5 @@
 #include "zed/comm/thread.h"
+#include "zed/log/log.h"
 
 #include <future>
 
@@ -51,6 +52,7 @@ Thread::~Thread()
     if (m_thread.joinable()) {
         m_thread.detach();
     }
+    LOG_DEBUG << "thread descruct";
 }
 
 void Thread::join()

@@ -79,6 +79,7 @@ private:
 private:
     std::mutex                  m_appenders_mutex {};
     std::list<LogAppender::Ptr> m_appenders {};
+    StdoutLogAppender           m_root_appender {};
 };
 
 using LoggerManager = util::Singleton<Logger>;

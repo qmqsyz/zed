@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.26)
 
 project(ZED LANGUAGES CXX)
 
@@ -7,19 +7,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
-if(DEFINED CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release")
-    message(STATUS "Setting default CMAKE_BUILD_TYPE to Release")
-endif()
+# if(NOT DEFINED CMAKE_BUILD_TYPE)
+# set(CMAKE_BUILD_TYPE Debug)
+# endif()
+message(STATUS ${CMAKE_BUILD_TYPE})
+
+
+message(${CMAKE_SOURCE_DIR})
+
+set(LIBS
+yaml-cpp
+pthread
+)
 
 include_directories(${PROJECT_SOURCE_DIR})
 
-add_subdirectory(zed)
-add_subdirectory(test)
+add_subdirectory(${PROJECT_SOURCE_DIR}/zed)
+add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 
-set(LIBS
-    yaml-cpp
-    pthread
-)
 
 target_link_libraries(zed_lib ${LIBS})
