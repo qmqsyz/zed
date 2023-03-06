@@ -25,8 +25,11 @@ namespace net {
 
     FdEvent::~FdEvent()
     {
-        remove();
-        ::close(m_fd);
+        // NOTICE:  FdEvent don't possess the fd, it only package fd and event.
+        //          FdEvent exists longer than executor
+
+        // remove();
+        // ::close(m_fd);
     }
 
     void FdEvent::delEvents(int event)
@@ -46,7 +49,7 @@ namespace net {
         m_executor = nullptr;
         m_read_callback = nullptr;
         m_write_callback = nullptr;
-        LOG_DEBUG << "FdEvent remove";
+        LOG_DEBUG << "remove fd [ " << m_fd << " ] from executor";
     };
 
     void FdEvent::handleEvent(int revents)

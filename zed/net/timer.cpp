@@ -50,8 +50,8 @@ namespace net {
 
     Timer::~Timer()
     {
-        // remove();
-        // ::close(m_fd);
+        remove();
+        ::close(m_fd);
     }
 
     void Timer::addTimerEvent(TimerEvent::Ptr event, bool need_reset)
@@ -95,7 +95,7 @@ namespace net {
         lock.unlock();
 
         if (it == m_pending_events.end()) {
-            LOG_DEBUG << "non timerevent pending";
+            LOG_DEBUG << "no timer event pending";
             return;
         }
 

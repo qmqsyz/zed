@@ -56,7 +56,10 @@ namespace net {
         }
         ::close(m_epoll_fd);
         ::close(m_wake_fd);
+        m_timer.reset();
+
         t_executor = nullptr;
+        LOG_DEBUG << "~Executor";
     }
 
     void Executor::wakeup()
@@ -138,7 +141,7 @@ namespace net {
 
         auto it = m_fds.find(fd);
         if (it == m_fds.end()) [[unlikely]] {
-            LOG_DEBUG << "fd = " << fd << " doesn't exist in this executor";
+            LOG_DEBUG << "fd [ " << fd << " ] doesn't exist in this executor";
             return;
         }
         if (epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, fd, nullptr) != 0) {
@@ -152,8 +155,10 @@ namespace net {
     {
         auto handle = task.getHandle();
         task.detach();
-        std::lock_guard lock(m_handles_mutex);
-        m_handles.emplace_back(handle);
+        {
+            std::lock_guard lock(m_handles_mutex);
+            m_init_handles.emplace_back(std::move(handle));
+        }
         // LOG_DEBUG << "schedule a handle";
         if (is_wakeup) [[likely]] {
             wakeup();
@@ -189,12 +194,14 @@ namespace net {
         while (m_stop_flag == false) {
 
             doInitHandle();
-
+            LOG_DEBUG << "finished doInitHandle";
             if (m_executor_type == Sub) {
                 consumeCoroutines();
+                LOG_DEBUG << "finished consumeCoroutines";
             }
 
             doRemainHanlde();
+            LOG_DEBUG << "finished doRemainHandle";
 
             if (first_handle) {
                 first_handle.resume();
@@ -202,6 +209,7 @@ namespace net {
             }
 
             consumePenddingTasks();
+            LOG_DEBUG << "finished consumePenddingTask";
 
             int cnt = epoll_wait(m_epoll_fd, re_events, MAX_EVENTS, t_max_epoll_timeout);
 
@@ -215,10 +223,8 @@ namespace net {
 
                     if (event.data.fd == m_wake_fd && (event.events & EPOLLIN)) {
                         char buf[8];
-                        while (true) {
-                            if (read(m_wake_fd, buf, sizeof(buf)) != 8 && errno == EAGAIN) {
-                                break;
-                            }
+                        if (read(m_wake_fd, buf, sizeof(buf)) != sizeof(8)) {
+                            LOG_DEBUG << "read wake_fd failed errinfo = " << strerror(errno);
                         }
                     } else {
                         FdEvent* ptr = static_cast<FdEvent*>(event.data.ptr);
@@ -248,10 +254,10 @@ namespace net {
 
     void Executor::stop()
     {
-        LOG_DEBUG << "Executor stop";
         if (m_stop_flag == false) {
             m_stop_flag = true;
             wakeup();
+            LOG_DEBUG << "Executor stop";
         }
     }
 
@@ -260,6 +266,8 @@ namespace net {
         if (m_timer == nullptr) [[unlikely]] {
             m_timer = std::make_unique<Timer>(this);
             m_timer_fd = m_timer->getFd();
+            m_fds.emplace(m_timer_fd);
+            LOG_DEBUG << "build timer event fd [ " << m_timer_fd << " ]";
         }
         return m_timer.get();
     }
@@ -274,10 +282,7 @@ namespace net {
                 ptr->setExecutor(this);
                 auto handle = ptr->getHandle();
                 handle.resume();
-                // if (!handle && handle.done()) {
-                //     handle.destroy();
-                //     // LOG_DEBUG << handle.address();
-                // }
+                // LOG_DEBUG << "resume a handle fd [ " << ptr->getFd() << " ]";
             }
         }
     }
@@ -299,17 +304,12 @@ namespace net {
         std::vector<std::coroutine_handle<>> handle_tmp;
         {
             std::lock_guard lock(m_handles_mutex);
-            handle_tmp.swap(m_handles);
+            handle_tmp.swap(m_init_handles);
         }
 
         for (auto handle : handle_tmp) {
             handle.resume();
-            if (handle.done()) {
-                handle.destroy();
-            } else {
-                // LOG_DEBUG << "handle is no't finished";
-                m_remain_handles.push_back(handle);
-            }
+            m_remain_handles.emplace_back(std::move(handle));
         }
     }
 
@@ -324,7 +324,7 @@ namespace net {
                 handle.destroy();
             } else {
                 // LOG_DEBUG << "handle is no't finished";
-                m_remain_handles.emplace_back(handle);
+                m_remain_handles.emplace_back(std::move(handle));
             }
         }
     }
@@ -345,7 +345,6 @@ namespace net {
                 m_tasks.pop();
             }
         }
-        // LOG_DEBUG << "task queue remain " << m_tasks.size() << "task";
         return task;
     }
 

@@ -70,9 +70,6 @@ namespace coroutine {
                 if (std::holds_alternative<std::exception_ptr>(m_value)) [[unlikely]] {
                     std::rethrow_exception(std::get<std::exception_ptr>(m_value));
                 }
-                // TODO delete this
-                std::cout << std::get<T>(m_value) << std::endl;
-
                 assert(std::holds_alternative<T>(m_value));
                 return std::get<T>(m_value);
             }

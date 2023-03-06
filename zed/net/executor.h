@@ -84,9 +84,9 @@ namespace net {
         std::mutex        m_mutex {};
         std::vector<Func> m_pendding_tasks {};
 
-        std::mutex                           m_handles_mutex;
-        std::vector<std::coroutine_handle<>> m_handles;
-        std::vector<std::coroutine_handle<>> m_remain_handles;
+        std::mutex                           m_handles_mutex {};
+        std::vector<std::coroutine_handle<>> m_init_handles {};
+        std::vector<std::coroutine_handle<>> m_remain_handles {};
 
         ExecutorType m_executor_type {Sub};
     };

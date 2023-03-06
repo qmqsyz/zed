@@ -20,8 +20,8 @@ struct TMP {
 
     void await_suspend(std::coroutine_handle<> handle)
     {
-        net::FdEvent* p = new net::FdEvent;
-        p->setHandle(handle);
+        net::FdEvent* p = net::FdManager::GetInstance().getFdEvent(g_index.fetch_add(1));
+        p->setHandle(std::move(handle));
         net::TaskManager::GetInstance().push(p);
     }
 
@@ -31,17 +31,14 @@ struct TMP {
 Task<int> count_lines()
 {
     co_await TMP {};
-    co_return g_index.fetch_add(1);
+    co_return g_index;
 }
 
 Task<> usage_example()
 {
     int lineCount = co_await count_lines();
-
     std::cout << "line count = " << lineCount << std::endl;
 }
-
-// TODO 完成删除初始TASK
 
 int main()
 {
@@ -53,7 +50,13 @@ int main()
 
     net::TimerEvent::Ptr done(new net::TimerEvent(5, false, [&]() { executor.stop(); }));
     executor.getTimer()->addTimerEvent(done);
+    std::thread t([&]() {
+        for (int i = 0; i < 100; ++i) {
+            executor.schedule(usage_example());
+        };
+        LOG_DEBUG << "end";
+    });
     executor.start();
-
+    t.join();
     return 0;
 }
