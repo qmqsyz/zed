@@ -103,8 +103,8 @@ void test_loadconf()
 
 int main(int argc, char** argv)
 {
-    zed::LoggerManager::GetInstance().addAppender(
-        zed::StdoutLogAppender::Ptr(new zed::StdoutLogAppender));
+    auto p = std::make_unique<zed::StdoutLogAppender>();
+    zed::LoggerManager().GetInstance().setAppender(std::move(p));
     zed::EnvironmentManager::GetInstance().init(argc, argv);
 
     // test_yaml();

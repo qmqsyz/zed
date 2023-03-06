@@ -63,11 +63,9 @@ public:
     Logger() = default;
     ~Logger() = default;
 
-    void addAppender(LogAppender::Ptr appender);
-    void delAppender(LogAppender::Ptr appender);
-    void clearAppenders();
+    void log(std::string&& msg);
 
-    void log(std::string msg);
+    void setAppender(std::unique_ptr<LogAppender> appender) { m_appender = std::move(appender); }
 
 public:
     static void            SetLevel(LogLevel::Level level);
@@ -77,9 +75,7 @@ private:
     static LogLevel::Level g_level;
 
 private:
-    std::mutex                  m_appenders_mutex {};
-    std::list<LogAppender::Ptr> m_appenders {};
-    StdoutLogAppender           m_root_appender {};
+    std::unique_ptr<LogAppender> m_appender;
 };
 
 using LoggerManager = util::Singleton<Logger>;

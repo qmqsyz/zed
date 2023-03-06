@@ -14,8 +14,6 @@ namespace zed {
 
 class LogAppender {
 public:
-    using Ptr = std::shared_ptr<LogAppender>;
-
     virtual ~LogAppender() = default;
     virtual void log(const std::string& msg) = 0;
 
@@ -24,15 +22,11 @@ protected:
 
 class StdoutLogAppender : public LogAppender {
 public:
-    using Ptr = std::shared_ptr<StdoutLogAppender>;
-
     void log(const std::string& msg) override;
 };
 
 class FileLogAppender : public LogAppender {
 public:
-    using Ptr = std::shared_ptr<FileLogAppender>;
-
     FileLogAppender(const std::string& base_name,
                     off_t              roll_size = 100 * 1000 * 1000,
                     int                flush_interval = 3,

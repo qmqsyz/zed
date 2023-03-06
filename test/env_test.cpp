@@ -6,8 +6,8 @@
 
 int main(int argc, char** argv)
 {
-    zed::StdoutLogAppender::Ptr p {new zed::StdoutLogAppender};
-    zed::LoggerManager::GetInstance().addAppender(p);
+    auto p = std::make_unique<zed::StdoutLogAppender>();
+    zed::LoggerManager::GetInstance().setAppender(std::move(p));
 
     std::cout << "argc=" << argc << std::endl;
     zed::EnvironmentManager::GetInstance().addHelp("s", "start with the terminal");

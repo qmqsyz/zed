@@ -42,8 +42,8 @@ Task<> usage_example()
 
 int main()
 {
-    auto p = std::make_shared<StdoutLogAppender>();
-    LoggerManager::GetInstance().addAppender(p);
+    auto p = std::make_unique<StdoutLogAppender>();
+    LoggerManager::GetInstance().setAppender(std::move(p));
     LoggerManager::GetInstance().SetLevel(LogLevel::DEBUG);
 
     net::Executor executor;

@@ -48,7 +48,7 @@ int main(int argc, char** argv)
 
     // StdoutLogAppender::Ptr p{new StdoutLogAppender};
     // LoggerManager::Getinstance()->addAppender(p);
-    FileLogAppender::Ptr fp(new FileLogAppender("log_test"));
-    LoggerManager::GetInstance().addAppender(fp);
+    auto fp = std::make_unique<FileLogAppender>("log_test");
+    LoggerManager::GetInstance().setAppender(std::move(fp));
     SpendTime(test, 1, argc > 1);
 }
