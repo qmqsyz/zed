@@ -30,7 +30,7 @@ namespace net {
         TimerEvent(int64_t interval, bool is_repeated, Func task)
             : m_interval(interval), m_is_repeated(is_repeated), m_task(std::move(task))
         {
-            m_expired_time = GetNowMicroSecond() + m_interval * 1000;
+            m_expired_time = GetNowMicroSecond() + m_interval;
         }
 
         void resetTime()

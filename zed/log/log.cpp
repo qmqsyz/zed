@@ -124,6 +124,8 @@ void LogEvent::setColor()
     }
 }
 
+Logger::Logger() : m_appender(new StdoutLogAppender) { }
+
 void Logger::log(std::string&& msg)
 {
     m_appender->log(std::move(msg));

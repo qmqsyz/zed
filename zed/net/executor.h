@@ -51,7 +51,9 @@ namespace net {
         void setReactorType(ExecutorType type) { m_executor_type = type; }
 
     public:
-        static Executor* GetCurrentExecutor();
+        static Executor* GetCurrentExecutor() noexcept;
+
+        static int GetEpollTimeout() noexcept;
 
     private:
         void wakeup();

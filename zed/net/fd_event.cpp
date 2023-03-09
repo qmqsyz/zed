@@ -81,12 +81,12 @@ namespace net {
 
     void FdEvent::setNonBlock()
     {
-        if (m_fd == -1) {
+        if (m_fd == -1) [[unlikely]] {
             LOG_ERROR << "m_fd == -1";
             return;
         }
         int flag = ::fcntl(m_fd, F_GETFL, 0);
-        if (flag && O_NONBLOCK) {
+        if (flag & O_NONBLOCK) {
             LOG_DEBUG << "fd:" << m_fd << " already set nonblock";
             return;
         }

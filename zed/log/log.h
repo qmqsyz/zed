@@ -44,7 +44,7 @@ public:
 private:
     void addFormattedTime();
     void addLevel() { m_ss << "[" << LogLevel::Tostring(m_level) << "]\t"; }
-    void addTid() { m_ss << '[' << this_thread::GetName() << "]\t"; }
+    void addTid() { m_ss << '[' << this_thread::GetId() << "]\t"; }
     void addFileInformation();
     void setColor();
 
@@ -60,7 +60,7 @@ class Logger : util::Noncopyable {
 public:
     using Ptr = std::shared_ptr<Logger>;
 
-    Logger() = default;
+    Logger();
     ~Logger() = default;
 
     void log(std::string&& msg);

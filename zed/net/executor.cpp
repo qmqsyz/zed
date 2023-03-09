@@ -12,9 +12,14 @@ namespace net {
 
     static thread_local int t_max_epoll_timeout {10000};
 
-    Executor* Executor::GetCurrentExecutor()
+    Executor* Executor::GetCurrentExecutor() noexcept
     {
         return t_executor;
+    }
+
+    int Executor::GetEpollTimeout() noexcept
+    {
+        return t_max_epoll_timeout;
     }
 
     Executor::Executor()
@@ -39,7 +44,7 @@ namespace net {
 
         struct epoll_event event;
         event.data.fd = m_wake_fd;
-        event.events = EPOLLIN;
+        event.events = EPOLLIN | EPOLLET;
         if (::epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, m_wake_fd, &event) != 0) {
             LOG_ERROR << "epoll_ctl add m_wake_fd failed fd = " << m_wake_fd;
         }
@@ -158,6 +163,7 @@ namespace net {
             std::lock_guard lock(m_handles_mutex);
             m_init_handles.emplace_back(std::move(handle));
         }
+        LOG_DEBUG << "add a task";
         if (is_wakeup) [[likely]] {
             wakeup();
         }
@@ -306,6 +312,7 @@ namespace net {
         }
 
         for (auto handle : handle_tmp) {
+            LOG_DEBUG << "resun a handle";
             handle.resume();
             m_remain_handles.emplace_back(std::move(handle));
         }
@@ -318,10 +325,10 @@ namespace net {
         handle_tmp.swap(m_remain_handles);
         for (auto handle : handle_tmp) {
             if (handle.done()) {
-                // LOG_DEBUG << "destroy a handle";
+                LOG_DEBUG << "destroy a handle";
                 handle.destroy();
             } else {
-                // LOG_DEBUG << "handle is no't finished";
+                LOG_DEBUG << "handle is no't finished";
                 m_remain_handles.emplace_back(std::move(handle));
             }
         }
