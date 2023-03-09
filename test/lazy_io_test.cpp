@@ -16,8 +16,6 @@ Task<void> Producer()
     char str[64] = "1234567890";
     while (int n = co_await lazy::Write(fd[1], str, strlen(str))) {
         LOG_DEBUG << "write " << n;
-        // // LOG_DEBUG << "write " << n << " bytes";
-        break;
     }
 }
 
@@ -36,6 +34,11 @@ int main()
     LOG_DEBUG << "fd = " << fd;
     Executor ex;
     ex.addTask(Consumer(), false);
-    ex.addTask(Producer(), false);
+    std::thread t([]() {
+        Executor ex;
+        ex.addTask(Producer(), false);
+        ex.start();
+    });
     ex.start();
+    t.join();
 }
