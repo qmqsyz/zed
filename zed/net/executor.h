@@ -36,7 +36,7 @@ namespace net {
 
         void delEvent(int fd, bool is_wakeup = true);
 
-        void schedule(coroutine::Task<>&& task, bool is_wakeup = true);
+        void addTask(coroutine::Task<>&& task, bool is_wakeup = true);
 
         void addTask(std::function<void()> task, bool is_wakeup = true);
 
@@ -56,7 +56,7 @@ namespace net {
     private:
         void wakeup();
 
-        bool isInLoopThread() const { return m_tid == Thread::GetCurrentThreadId(); }
+        bool isInLoopThread() const { return m_tid == this_thread::GetId(); }
 
         void updateEventInLoopThread(int fd, epoll_event event);
 

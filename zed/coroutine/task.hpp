@@ -6,8 +6,6 @@
 #include <exception>
 #include <variant>
 
-#include <iostream>
-
 namespace zed {
 
 namespace coroutine {

@@ -44,7 +44,7 @@ public:
 private:
     void addFormattedTime();
     void addLevel() { m_ss << "[" << LogLevel::Tostring(m_level) << "]\t"; }
-    void addTid() { m_ss << '[' << Thread::GetCurrentThreadId() << "]\t"; }
+    void addTid() { m_ss << '[' << this_thread::GetName() << "]\t"; }
     void addFileInformation();
     void setColor();
 

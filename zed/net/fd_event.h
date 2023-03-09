@@ -44,6 +44,10 @@ namespace net {
 
         void setExecutor(Executor* executor) { m_executor = executor; }
 
+        void setNonBlock();
+
+        bool isNonBlock();
+
     private:
         void update();
 

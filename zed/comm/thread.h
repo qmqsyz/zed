@@ -12,6 +12,16 @@ namespace zed {
 
 class Thread;
 
+namespace this_thread {
+
+    pid_t GetId();
+
+    Thread* GetThread();
+
+    std::string GetName();
+
+} // namespace this_thread
+
 class Thread {
 public:
     using Ptr = std::shared_ptr<Thread>;
@@ -34,12 +44,12 @@ public:
 
     void join();
 
-public:
-    static pid_t GetCurrentThreadId();
+    // public:
+    //     static pid_t GetCurrentThreadId();
 
-    static Thread* GetCurrentThread();
+    //     static Thread* GetCurrentThread();
 
-    static const std::string& GetCurrentThreadName();
+    //     static const std::string& GetCurrentThreadName();
 
 private:
     void setDefaultName();

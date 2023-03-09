@@ -2,6 +2,7 @@
 #include "zed/log/log.h"
 #include "zed/net/executor.h"
 
+#include <fcntl.h>
 #include <sys/epoll.h>
 
 namespace zed {
@@ -76,6 +77,36 @@ namespace net {
         event.events = m_events;
         event.data.ptr = this;
         m_executor->updateEvent(m_fd, event);
+    }
+
+    void FdEvent::setNonBlock()
+    {
+        if (m_fd == -1) {
+            LOG_ERROR << "m_fd == -1";
+            return;
+        }
+        int flag = ::fcntl(m_fd, F_GETFL, 0);
+        if (flag && O_NONBLOCK) {
+            LOG_DEBUG << "fd:" << m_fd << " already set nonblock";
+            return;
+        }
+        ::fcntl(m_fd, F_SETFL, flag | O_NONBLOCK);
+        flag = ::fcntl(m_fd, F_GETFL, 0);
+        if (flag & O_NONBLOCK) {
+            LOG_DEBUG << "succ set o_nonblock";
+        } else {
+            LOG_ERROR << "set o_nonblock error";
+        }
+    }
+
+    bool FdEvent::isNonBlock()
+    {
+        if (m_fd == -1) {
+            LOG_ERROR << "error, fd=-1";
+            return false;
+        }
+        int flag = ::fcntl(m_fd, F_GETFL, 0);
+        return (flag & O_NONBLOCK);
     }
 
     namespace detail {

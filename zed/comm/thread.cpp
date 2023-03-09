@@ -9,25 +9,47 @@ static thread_local pid_t       t_thread_id {0};
 static thread_local Thread*     t_thread {nullptr};
 static thread_local std::string t_thread_name {};
 
+namespace this_thread {
+
+    pid_t GetId()
+    {
+        if (t_thread_id == 0) [[likely]] {
+            t_thread_id = ::syscall(SYS_gettid);
+        }
+        return t_thread_id;
+    }
+
+    std::string GetName()
+    {
+        return t_thread_name;
+    }
+
+    Thread* GetThread()
+    {
+        return t_thread;
+    }
+
+} // namespace this_thread
+
 std::atomic<int32_t> Thread::s_thread_num {0};
 
-pid_t Thread::GetCurrentThreadId()
-{
-    if (t_thread_id == 0) [[unlikely]] {
-        t_thread_id = ::syscall(SYS_gettid);
-    }
-    return t_thread_id;
-}
+// pid_t Thread::GetCurrentThreadId()
+// {
+//     if (t_thread_id == 0) [[unlikely]] {
+//         t_thread_id = ::syscall(SYS_gettid);
+//     }
+//     return t_thread_id;
+// }
 
-Thread* Thread::GetCurrentThread()
-{
-    return t_thread;
-}
+// Thread* Thread::GetCurrentThread()
+// {
+//     return t_thread;
+// }
 
-const std::string& Thread::GetCurrentThreadName()
-{
-    return t_thread_name;
-}
+// const std::string& Thread::GetCurrentThreadName()
+// {
+//     return t_thread_name;
+// }
 
 Thread::Thread(std::function<void()> cb, const std::string& name)
     : m_cb {std::move(cb)}, m_name {name}
@@ -38,7 +60,7 @@ Thread::Thread(std::function<void()> cb, const std::string& name)
 
     std::promise<void> p;
     m_thread = std::thread([&]() {
-        m_tid = GetCurrentThreadId();
+        m_tid = this_thread::GetId();
         t_thread_name = m_name;
         t_thread = this;
         p.set_value();

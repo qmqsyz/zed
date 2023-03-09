@@ -52,7 +52,7 @@ int main()
     executor.getTimer()->addTimerEvent(done);
     std::thread t([&]() {
         for (int i = 0; i < 100; ++i) {
-            executor.schedule(usage_example());
+            executor.addTask(usage_example());
         };
         LOG_DEBUG << "end";
     });

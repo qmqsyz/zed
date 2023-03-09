@@ -13,9 +13,9 @@ std::atomic<int> num {0};
 void f(int n)
 {
     for (int i = 0; i < n; ++i) {
-        std::cout << "Tpoint: " << Thread::GetCurrentThread() << '\t'
-                  << "Tid: " << Thread::GetCurrentThreadId() << '\t'
-                  << "Tname: " << Thread::GetCurrentThreadName() << '\n';
+        std::cout << "Tpoint: " << this_thread::GetThread() << '\t'
+                  << "Tid: " << this_thread::GetId() << '\t' << "Tname: " << this_thread::GetName()
+                  << '\n';
         ++num;
     }
 }
@@ -35,8 +35,9 @@ void test(int n, int m)
 
 int main()
 {
-    std::cout << "main" << Thread::GetCurrentThread() << ' ' << Thread::GetCurrentThreadId() << " "
-              << Thread::GetCurrentThreadName() << '\n';
+    std::cout << "Tpoint: " << this_thread::GetThread() << '\t' << "Tid: " << this_thread::GetId()
+              << '\t' << "Tname: " << this_thread::GetName() << '\n';
+
     SpendTime(test, 5, 10);
     SpendTime(test, 2, 10);
 }

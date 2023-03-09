@@ -18,13 +18,12 @@ namespace net {
     }
 
     Executor::Executor()
-        : m_tid {Thread::GetCurrentThreadId()}
+        : m_tid {this_thread::GetId()}
         , m_epoll_fd {epoll_create1(EPOLL_CLOEXEC)}
         , m_wake_fd(eventfd(0, EFD_NONBLOCK))
     {
         if (t_executor != nullptr) [[unlikely]] {
-            LOG_ERROR << "to many executor on a thread! threadname =  "
-                      << Thread::GetCurrentThreadName;
+            LOG_ERROR << "to many executor on a thread! thread_id = " << this_thread::GetId();
             std::terminate();
         }
         t_executor = this;
@@ -151,7 +150,7 @@ namespace net {
         LOG_DEBUG << "delete fd = " << fd << " successfully";
     }
 
-    void Executor::schedule(coroutine::Task<>&& task, bool is_wakeup)
+    void Executor::addTask(coroutine::Task<>&& task, bool is_wakeup)
     {
         auto handle = task.getHandle();
         task.detach();
@@ -159,7 +158,6 @@ namespace net {
             std::lock_guard lock(m_handles_mutex);
             m_init_handles.emplace_back(std::move(handle));
         }
-        // LOG_DEBUG << "schedule a handle";
         if (is_wakeup) [[likely]] {
             wakeup();
         }

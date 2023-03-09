@@ -5,4 +5,3 @@ aux_source_directory(comm SOURCES)
 aux_source_directory(net SOURCES)
 
 add_library(zed_lib ${SOURCES})
-
