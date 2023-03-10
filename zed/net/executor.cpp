@@ -163,7 +163,7 @@ namespace net {
             std::lock_guard lock(m_handles_mutex);
             m_init_handles.emplace_back(std::move(handle));
         }
-        LOG_DEBUG << "add a task";
+        // LOG_DEBUG << "add a task";
         if (is_wakeup) [[likely]] {
             wakeup();
         }
@@ -198,14 +198,13 @@ namespace net {
         while (m_stop_flag == false) {
 
             doInitHandle();
-            LOG_DEBUG << "finished doInitHandle";
+            // LOG_DEBUG << "finished doInitHandle";
             if (m_executor_type == Sub) {
                 consumeCoroutines();
-                LOG_DEBUG << "finished consumeCoroutines";
+                // LOG_DEBUG << "finished consumeCoroutines";
             }
-
             doRemainHanlde();
-            LOG_DEBUG << "finished doRemainHandle";
+            // LOG_DEBUG << "finished doRemainHandle";
 
             if (first_handle) {
                 first_handle.resume();
@@ -213,11 +212,11 @@ namespace net {
             }
 
             consumePenddingTasks();
-            LOG_DEBUG << "finished consumePenddingTask";
+            // LOG_DEBUG << "finished consumePenddingTask";
 
             int cnt = epoll_wait(m_epoll_fd, re_events, MAX_EVENTS, t_max_epoll_timeout);
 
-            LOG_DEBUG << "epoll_wait return " << cnt;
+            LOG_DEBUG << cnt << " events happened";
 
             if (cnt < 0) {
                 LOG_ERROR << "epoll_wait failed errinfo = " << strerror(errno);
@@ -312,7 +311,7 @@ namespace net {
         }
 
         for (auto handle : handle_tmp) {
-            LOG_DEBUG << "resun a handle";
+            // LOG_DEBUG << "resun a handle";
             handle.resume();
             m_remain_handles.emplace_back(std::move(handle));
         }
@@ -325,10 +324,10 @@ namespace net {
         handle_tmp.swap(m_remain_handles);
         for (auto handle : handle_tmp) {
             if (handle.done()) {
-                LOG_DEBUG << "destroy a handle";
+                // LOG_DEBUG << "destroy a handle";
                 handle.destroy();
             } else {
-                LOG_DEBUG << "handle is no't finished";
+                // LOG_DEBUG << "handle is no't finished";
                 m_remain_handles.emplace_back(std::move(handle));
             }
         }

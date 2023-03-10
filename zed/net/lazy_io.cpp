@@ -2,6 +2,7 @@
 #include "zed/log/log.h"
 
 #include <sys/socket.h>
+#include <unistd.h>
 
 namespace zed {
 
@@ -29,7 +30,7 @@ namespace net {
             if (n > 0) {
                 co_return n;
             }
-            co_await detail::EventAwaiter(fd_event, EPOLLIN);
+            co_await detail::AddEventAwaiter(fd_event, EPOLLIN);
             co_return ::read(fd, buf, count);
         }
 
@@ -40,7 +41,7 @@ namespace net {
             if (n > 0) {
                 co_return n;
             }
-            co_await detail::EventAwaiter(fd_event, EPOLLOUT);
+            co_await detail::AddEventAwaiter(fd_event, EPOLLOUT);
             co_return ::write(fd, buf, count);
         }
 
@@ -51,7 +52,7 @@ namespace net {
             if (n > 0) {
                 co_return n;
             }
-            co_await detail::EventAwaiter(fd_event, EPOLLOUT);
+            co_await detail::AddEventAwaiter(fd_event, EPOLLOUT);
             co_return ::send(fd, buf, count, flags);
         }
 
@@ -62,7 +63,7 @@ namespace net {
             if (n > 0) {
                 co_return n;
             }
-            co_await detail::EventAwaiter(fd_event, EPOLLIN);
+            co_await detail::AddEventAwaiter(fd_event, EPOLLIN);
             co_return ::recv(fd, buf, count, flags);
         }
 
@@ -92,16 +93,24 @@ namespace net {
         }
 
         [[CO_AWAIT_HINT]] coroutine::Task<int>
-        Accept(int sockfd, sockaddr* addr, socklen_t* addrlen)
+        Accept(int sockfd, sockaddr* addr, socklen_t* addrlen, int flags)
         {
             auto fd_event = detail::InitFdEvent(sockfd);
-            int  n = ::accept(sockfd, addr, addrlen);
+            int  n = ::accept4(sockfd, addr, addrlen, flags);
             if (n > 0) {
                 co_return n;
             }
-            co_await detail::EventAwaiter(fd_event, EPOLLIN);
-            co_return ::accept(sockfd, addr, addrlen);
+            co_await detail::AddEventAwaiter(fd_event, EPOLLIN);
+            co_return ::accept4(sockfd, addr, addrlen, flags);
         }
+
+        [[CO_AWAIT_HINT]] coroutine::Task<int> Close(int sockfd)
+        {
+            FdManager::GetInstance().getFdEvent(sockfd)->remove();
+            co_return ::close(sockfd);
+        }
+
+        // [[CO_AWAIT_HINT]] coroutine::Task<int> Shutdown(int sockfd, int flag) { }
 
     } // namespace lazy
 

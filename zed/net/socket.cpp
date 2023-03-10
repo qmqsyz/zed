@@ -10,14 +10,23 @@ namespace net {
 
     Socket::Socket(int sockfd) noexcept : m_sockfd(sockfd) { }
 
+    Socket::~Socket() noexcept
+    {
+        auto ptr = FdManager::GetInstance().getFdEvent(m_sockfd)->getExecutor();
+        if (ptr != nullptr) {
+            this->close();
+        }
+    }
+
     Socket& Socket::bind(const Address::Ptr& addr)
     {
         const int res = ::bind(m_sockfd, addr->getAddr(), addr->getAddrLen());
-        if (res != 0) {
+        if (res != 0) [[unlikely]] {
             LOG_ERROR << "bind failed fd:" << m_sockfd << " bind addr:" << addr->toString()
                       << " failed errinfo:" << strerror(errno);
             std::terminate();
         }
+        LOG_INFO << "sockfd:" << m_sockfd << " bind " << addr->toString();
         return *this;
     }
     Socket& Socket::listen(int flag)

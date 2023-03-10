@@ -1,4 +1,4 @@
-#include "zed/net/scheduler.h"
+#include "zed/net/executor_pool.h"
 #include "zed/log/log.h"
 
 #include <future>
@@ -7,12 +7,12 @@ namespace zed {
 
 namespace net {
 
-    Scheduler::Scheduler(int thread_num) : m_thread_num(thread_num)
+    ExecutorPool::ExecutorPool(int thread_num) : m_thread_num(thread_num)
     {
         assert(m_thread_num > 0);
     }
 
-    Scheduler::~Scheduler()
+    ExecutorPool::~ExecutorPool()
     {
         for (auto& executor : m_executors) {
             executor->stop();
@@ -22,7 +22,7 @@ namespace net {
         }
     }
 
-    void Scheduler::start()
+    void ExecutorPool::start()
     {
         m_executors.reserve(m_thread_num);
         for (int i {0}; i < m_thread_num; ++i) {
@@ -40,7 +40,7 @@ namespace net {
         }
     }
 
-    Executor* Scheduler::getExecutor()
+    Executor* ExecutorPool::getExecutor()
     {
         if (m_index == m_thread_num) {
             m_index = 0;
@@ -48,7 +48,7 @@ namespace net {
         return m_executors[m_index++].get();
     }
 
-    Executor* Scheduler::getExecutor(int index)
+    Executor* ExecutorPool::getExecutor(int index)
     {
         if (index >= 0 && index < m_thread_num) [[likely]] {
             return m_executors[index].get();

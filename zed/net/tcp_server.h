@@ -3,25 +3,16 @@
 
 #include "zed/net/address.h"
 
-#include <memory>
-
 namespace zed {
 
 namespace net {
 
-    class TcpAcceptor {
-    public:
-        using Ptr = std::shared_ptr<TcpAcceptor>;
-        TcpAcceptor(Address::Ptr addr);
-    };
-
     class TcpServer {
     public:
-        explicit TcpServer();
-        ~TcpServer();
+        TcpServer(const Address::Ptr& addr);
 
-    private:
-    };
+        ~TcpServer();
+    }
 
 } // namespace net
 

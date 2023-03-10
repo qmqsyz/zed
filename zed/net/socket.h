@@ -3,16 +3,17 @@
 
 #include "zed/net/address.h"
 #include "zed/net/lazy_io.h"
+#include "zed/util/noncopyable.h"
 
 namespace zed {
 
 namespace net {
 
-    class Socket {
+    class Socket : util::Noncopyable {
     public:
         explicit Socket(int sockfd) noexcept;
 
-        ~Socket() noexcept = default;
+        ~Socket() noexcept;
 
         Socket& bind(const Address::Ptr& addr);
 
@@ -43,17 +44,27 @@ namespace net {
             return lazy::Send(m_sockfd, buf, count, flags);
         }
 
+        int close() noexcept
+        {
+            const int tmp {m_sockfd};
+            m_sockfd = -1;
+            FdManager::GetInstance().getFdEvent(tmp)->remove();
+            return ::close(tmp);
+        }
+
+        int shutdownWrite() const noexcept { return ::shutdown(m_sockfd, SHUT_WR); }
+
         [[nodiscard]] Address::Ptr getLocalAddr() const;
 
         [[nodiscard]] Address::Ptr getPeerAddr() const;
 
     public:
-        static Socket CreateTCP(sa_family_t family);
+        [[nodiscard]] static Socket CreateTCP(sa_family_t family);
 
-        static Socket CreateUDP(sa_family_t family);
+        [[nodiscard]] static Socket CreateUDP(sa_family_t family);
 
     private:
-        int m_sockfd;
+        int m_sockfd {-1};
     };
 
 } // namespace net

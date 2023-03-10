@@ -20,7 +20,7 @@ namespace net {
             return;
         }
         m_events |= event;
-        LOG_DEBUG << "FdEvent:: addEvents";
+        // LOG_DEBUG << "FdEvent:: addEvents";
         update();
     }
 
@@ -40,7 +40,7 @@ namespace net {
             update();
             return;
         }
-        LOG_DEBUG << "the event no exist";
+        LOG_DEBUG << "the event do not exist";
     }
 
     void FdEvent::remove()
@@ -79,14 +79,14 @@ namespace net {
         m_executor->updateEvent(m_fd, event);
     }
 
-    void FdEvent::setNonBlock()
+    void FdEvent::setNonBlock() noexcept
     {
         if (m_fd == -1) [[unlikely]] {
             LOG_ERROR << "m_fd == -1";
             return;
         }
         int flag = ::fcntl(m_fd, F_GETFL, 0);
-        if (flag & O_NONBLOCK) {
+        if (flag & O_NONBLOCK) [[likely]] {
             LOG_DEBUG << "fd:" << m_fd << " already set nonblock";
             return;
         }
@@ -99,7 +99,7 @@ namespace net {
         }
     }
 
-    bool FdEvent::isNonBlock()
+    bool FdEvent::isNonBlock() noexcept
     {
         if (m_fd == -1) {
             LOG_ERROR << "error, fd=-1";

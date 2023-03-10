@@ -32,7 +32,7 @@ namespace net {
 
         void handleEvent(int revents);
 
-        int getFd() const { return m_fd; }
+        [[nodiscard]] int getFd() const noexcept { return m_fd; }
 
         void setReadCallback(Func cb) { m_read_callback = std::move(cb); }
 
@@ -40,13 +40,15 @@ namespace net {
 
         void setHandle(std::coroutine_handle<> handle) { m_handle = handle; };
 
-        std::coroutine_handle<> getHandle() const { return m_handle; }
+        [[nodiscard]] std::coroutine_handle<> getHandle() const { return m_handle; }
 
-        void setExecutor(Executor* executor) { m_executor = executor; }
+        [[nodiscard]] Executor* getExecutor() const noexcept { return m_executor; }
 
-        void setNonBlock();
+        void setExecutor(Executor* executor) noexcept { m_executor = executor; }
 
-        bool isNonBlock();
+        void setNonBlock() noexcept;
+
+        [[nodiscard]] bool isNonBlock() noexcept;
 
     private:
         void update();

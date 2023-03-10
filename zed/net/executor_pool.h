@@ -1,5 +1,5 @@
-#ifndef ZED_NET_SCHEDULER_H_
-#define ZED_NET_SCHEDULER_H_
+#ifndef ZED_NET_EXECUTORPOOL_H_
+#define ZED_NET_EXECUTORPOOL_H_
 
 #include "zed/comm/thread.h"
 #include "zed/net/executor.h"
@@ -11,11 +11,11 @@ namespace zed {
 
 namespace net {
 
-    class Scheduler : util::Noncopyable {
+    class ExecutorPool : util::Noncopyable {
     public:
-        Scheduler(int thread_num = 1);
+        ExecutorPool(int thread_num = 1);
 
-        ~Scheduler();
+        ~ExecutorPool();
 
         void start();
 
@@ -35,4 +35,4 @@ namespace net {
 
 } // namespace zed
 
-#endif // ZED_NET_SCHEDULER_H_
+#endif // ZED_NET_EXECUTORPOOL_H_

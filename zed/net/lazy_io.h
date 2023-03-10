@@ -17,11 +17,11 @@ namespace net {
 
         namespace detail {
 
-            struct EventAwaiter {
+            struct AddEventAwaiter {
                 FdEvent* m_fd_event {nullptr};
                 int      m_events {0};
 
-                EventAwaiter(FdEvent* fd_event, int events) noexcept
+                AddEventAwaiter(FdEvent* fd_event, int events) noexcept
                     : m_fd_event(fd_event), m_events(events)
                 {
                 }
@@ -74,6 +74,7 @@ namespace net {
                     return is_timeout;
                 }
             };
+
         } // namespace detail
 
         [[CO_AWAIT_HINT]] coroutine::Task<int> Read(int fd, void* buf, size_t count);
@@ -88,7 +89,11 @@ namespace net {
         Connect(int sockfd, const sockaddr* addr, socklen_t addrlen);
 
         [[CO_AWAIT_HINT]] coroutine::Task<int>
-        Accept(int sockfd, sockaddr* addr, socklen_t* addrlen);
+        Accept(int sockfd, sockaddr* addr, socklen_t* addrlen, int flags);
+
+        [[CO_AWAIT_HINT]] coroutine::Task<int> Close(int sockfd);
+
+        // [[CO_AWAIT_HINT]] coroutine::Task<int> Shutdown(int sockfd, int flag);
     } // namespace lazy
 
 } // namespace net

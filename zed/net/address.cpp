@@ -98,7 +98,7 @@ namespace net {
         if (::inet_ntop(AF_INET, &m_address.sin_addr, buf, sizeof(buf)) == nullptr) {
             LOG_ERROR << "inet_ntop failed sysinfo = " << strerror(errno);
         }
-        return std::string(buf).append(" : ").append(std::to_string(getPort()));
+        return std::string(buf).append(":").append(std::to_string(getPort()));
     }
     IPv6Address::IPv6Address()
     {
@@ -129,7 +129,13 @@ namespace net {
         if (::inet_ntop(AF_INET6, &m_address.sin6_addr, buf, sizeof(buf)) == nullptr) {
             LOG_ERROR << "inet_ntop failed sysinfo = " << strerror(errno);
         }
-        return std::string(buf).append(" : ").append(std::to_string(getPort()));
+        return std::string(buf).append(":").append(std::to_string(getPort()));
+    }
+
+    std::ostream& operator<<(std::ostream& os, const Address& addr)
+    {
+        os << addr.toString();
+        return os;
     }
 
 } // namespace net
