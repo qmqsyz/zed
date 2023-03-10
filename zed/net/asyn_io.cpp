@@ -1,4 +1,4 @@
-#include "zed/net/lazy_io.h"
+#include "zed/net/asyn_io.h"
 #include "zed/log/log.h"
 
 #include <sys/socket.h>
@@ -8,7 +8,7 @@ namespace zed {
 
 namespace net {
 
-    namespace lazy {
+    namespace asyn {
 
         namespace detail {
 
@@ -112,7 +112,7 @@ namespace net {
 
         // [[CO_AWAIT_HINT]] coroutine::Task<int> Shutdown(int sockfd, int flag) { }
 
-    } // namespace lazy
+    } // namespace asyn
 
 } // namespace net
 

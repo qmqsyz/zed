@@ -1,5 +1,5 @@
-#ifndef ZED_NET_LAZYIO_HPP_
-#define ZED_NET_LAZYIO_HPP_
+#ifndef ZED_NET_ASYNIO_H_
+#define ZED_NET_ASYNIO_H_
 
 #include "zed/coroutine/task.hpp"
 #include "zed/detail/hint.hpp"
@@ -13,7 +13,7 @@ namespace zed {
 
 namespace net {
 
-    namespace lazy {
+    namespace asyn {
 
         namespace detail {
 
@@ -94,10 +94,10 @@ namespace net {
         [[CO_AWAIT_HINT]] coroutine::Task<int> Close(int sockfd);
 
         // [[CO_AWAIT_HINT]] coroutine::Task<int> Shutdown(int sockfd, int flag);
-    } // namespace lazy
+    } // namespace asyn
 
 } // namespace net
 
 } // namespace zed
 
-#endif // ZED_COROUTINE_NET_HPP_
+#endif // ZED_NET_ASYNIO_H_

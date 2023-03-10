@@ -2,7 +2,7 @@
 #define ZED_NET_Socket_H_
 
 #include "zed/net/address.h"
-#include "zed/net/lazy_io.h"
+#include "zed/net/asyn_io.h"
 #include "zed/util/noncopyable.h"
 
 namespace zed {
@@ -14,6 +14,18 @@ namespace net {
         explicit Socket(int sockfd) noexcept;
 
         ~Socket() noexcept;
+
+        Socket(Socket&& other) noexcept : m_sockfd(other.m_sockfd) { other.m_sockfd = -1; };
+
+        Socket& operator=(Socket&& other) noexcept
+        {
+            if (this == std::addressof(other)) {
+                return *this;
+            }
+            m_sockfd = other.m_sockfd;
+            other.m_sockfd = -1;
+            return *this;
+        }
 
         Socket& bind(const Address::Ptr& addr);
 
@@ -31,17 +43,17 @@ namespace net {
 
         [[CO_AWAIT_HINT]] auto connect(Address::Ptr addr) const noexcept
         {
-            return lazy::Connect(m_sockfd, addr->getAddr(), addr->getAddrLen());
+            return asyn::Connect(m_sockfd, addr->getAddr(), addr->getAddrLen());
         }
 
         [[CO_AWAIT_HINT]] auto recv(char* buf, int count, int flags = 0) const noexcept
         {
-            return lazy::Recv(m_sockfd, buf, count, flags);
+            return asyn::Recv(m_sockfd, buf, count, flags);
         }
 
         [[CO_AWAIT_HINT]] auto send(char* buf, int count, int flags = 0) const noexcept
         {
-            return lazy::Send(m_sockfd, buf, count, flags);
+            return asyn::Send(m_sockfd, buf, count, flags);
         }
 
         int close() noexcept

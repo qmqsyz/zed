@@ -1,6 +1,6 @@
 #include "zed/log/log.h"
+#include "zed/net/asyn_io.h"
 #include "zed/net/executor.h"
-#include "zed/net/lazy_io.h"
 
 #include <sys/file.h>
 #include <sys/stat.h>
@@ -14,7 +14,7 @@ int fd[2];
 Task<void> Producer()
 {
     char str[64] = "1234567890";
-    while (int n = co_await lazy::Write(fd[1], str, strlen(str))) {
+    while (int n = co_await asyn::Write(fd[1], str, strlen(str))) {
         LOG_DEBUG << "write " << n;
     }
 }
@@ -23,7 +23,7 @@ Task<void> Consumer()
 {
     char buf[64];
     ::memset(buf, 0, sizeof(buf));
-    while (int n = co_await lazy::Read(fd[0], buf, sizeof(buf))) {
+    while (int n = co_await asyn::Read(fd[0], buf, sizeof(buf))) {
         LOG_DEBUG << "read " << n << " str: " << buf;
     }
 }

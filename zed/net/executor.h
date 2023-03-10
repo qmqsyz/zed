@@ -48,7 +48,7 @@ namespace net {
 
         pid_t getTid() const { return m_tid; }
 
-        void setReactorType(ExecutorType type) { m_executor_type = type; }
+        void setReactorType(ExecutorType type) noexcept { m_executor_type = type; }
 
     public:
         static Executor* GetCurrentExecutor() noexcept;

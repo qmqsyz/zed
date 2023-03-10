@@ -19,16 +19,16 @@ namespace net {
 
         void start();
 
-        Executor* getExecutor();
+        [[nodiscard]] Executor* getExecutor();
 
-        Executor* getExecutor(int index);
+        [[nodiscard]] Executor* getExecutor(int index);
 
     private:
-        bool                                   m_is_started {false};
-        int                                    m_thread_num {0};
-        int                                    m_index {0};
-        std::vector<std::unique_ptr<Thread>>   m_threads {};
-        std::vector<std::unique_ptr<Executor>> m_executors {};
+        bool                                 m_is_started {false};
+        int                                  m_thread_num {0};
+        int                                  m_index {0};
+        std::vector<std::unique_ptr<Thread>> m_threads {};
+        std::vector<Executor*>               m_executors {};
     };
 
 } // namespace net

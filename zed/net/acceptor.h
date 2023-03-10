@@ -2,7 +2,7 @@
 #define ZED_NET_ACCEPTOR_H_
 
 #include "zed/net/address.h"
-#include "zed/net/lazy_io.h"
+#include "zed/net/asyn_io.h"
 #include "zed/net/socket.h"
 #include "zed/util/noncopyable.h"
 
@@ -19,7 +19,7 @@ namespace net {
 
         [[CO_AWAIT_HINT]] auto accept(int flags = 0)
         {
-            return lazy::Accept(m_listen_socket.getFd(), nullptr, nullptr, flags);
+            return asyn::Accept(m_listen_socket.getFd(), nullptr, nullptr, flags);
         }
 
         [[nodiscard]] int getFd() const noexcept { return m_listen_socket.getFd(); }
