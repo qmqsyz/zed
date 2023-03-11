@@ -35,11 +35,11 @@ namespace net {
             return m_buffer.size() - m_write_index;
         }
 
-        [[nodisacrd]] size_t prependableBytes() const noexcept { return m_read_index; }
+        [[nodiscard]] size_t prependableBytes() const noexcept { return m_read_index; }
 
         [[nodiscard]] const char* peek() const noexcept { return begin() + m_read_index; }
 
-        [[nodisacrd]] char* beginWrite() noexcept { return begin() + m_write_index; }
+        [[nodiscard]] char* beginWrite() noexcept { return begin() + m_write_index; }
 
         void hasWritten(size_t len) noexcept
         {
@@ -55,40 +55,6 @@ namespace net {
 
         [[nodiscard]] const char* beginWrite() const noexcept { return begin() + m_write_index; }
 
-        /// @brief 查找\\r\\n
-        [[nodiscard]] const char* findCRLF() const noexcept
-        {
-            const char* crlf
-                = static_cast<const char*>(::memmem(peek(), readableBytes(), k_CRLF, 2));
-            return crlf == beginWrite() ? nullptr : crlf;
-        }
-
-        [[nodiscard]] const char* findCRLF(const char* start) const noexcept
-        {
-            assert(peek() <= start);
-            assert(start <= beginWrite());
-
-            const char* crlf
-                = static_cast<const char*>(::memmem(start, readableBytes(), k_CRLF, 2));
-            return crlf == beginWrite() ? nullptr : crlf;
-        }
-
-        /// @brief 找到结束符
-        [[nodiscard]] const char* findEOL() const noexcept
-        {
-            const void* eol = memchr(peek(), '\n', readableBytes());
-            return static_cast<const char*>(eol);
-        }
-
-        [[nodiscard]] const char* findEOL(const char* start) const noexcept
-        {
-            assert(peek() <= start);
-            assert(start <= beginWrite());
-
-            const void* eol = memchr(start, '\n', beginWrite() - start);
-            return static_cast<const char*>(eol);
-        }
-
         void retrieve(size_t len) noexcept
         {
             assert(len <= readableBytes());
@@ -102,12 +68,12 @@ namespace net {
 
         void retrieveAll() noexcept { m_read_index = m_write_index = k_cheap_prepend; }
 
-        [[nodisacrd]] std::string retrieveAllAsString()
+        [[nodiscard]] std::string retrieveAllAsString()
         {
             return retrieveAsString(readableBytes());
         }
 
-        [[nodisacrd]] std::string retrieveAsString(size_t len)
+        [[nodiscard]] std::string retrieveAsString(size_t len)
         {
             assert(len <= readableBytes());
             std::string result(peek(), len);
@@ -115,7 +81,7 @@ namespace net {
             return result;
         }
 
-        [[nodisacrd]] std::string_view getStringView() const noexcept
+        [[nodiscard]] std::string_view getStringView() const noexcept
         {
             return std::string_view(peek(), readableBytes());
         }
@@ -153,9 +119,6 @@ namespace net {
                 assert(n == readableBytes());
             }
         }
-
-    private:
-        static const char k_CRLF[];
 
     private:
         size_t            m_read_index {0};

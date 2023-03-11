@@ -34,7 +34,7 @@ namespace net {
             co_return ::read(fd, buf, count);
         }
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Write(int fd, void* buf, size_t count)
+        [[CO_AWAIT_HINT]] coroutine::Task<int> Write(int fd, const void* buf, size_t count)
         {
             auto fd_event = detail::InitFdEvent(fd);
             int  n = ::write(fd, buf, count);
@@ -45,7 +45,8 @@ namespace net {
             co_return ::write(fd, buf, count);
         }
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Send(int fd, void* buf, size_t count, int flags)
+        [[CO_AWAIT_HINT]] coroutine::Task<int>
+        Send(int fd, const void* buf, size_t count, int flags)
         {
             auto fd_event = detail::InitFdEvent(fd);
             int  n = ::send(fd, buf, count, flags);
@@ -109,6 +110,8 @@ namespace net {
             FdManager::GetInstance().getFdEvent(sockfd)->remove();
             co_return ::close(sockfd);
         }
+
+        [[CO_AWAIT_HINT]] coroutine::Task<void> Sleep(std::chrono::milliseconds m);
 
         // [[CO_AWAIT_HINT]] coroutine::Task<int> Shutdown(int sockfd, int flag) { }
 

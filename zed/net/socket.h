@@ -27,10 +27,6 @@ namespace net {
             return *this;
         }
 
-        Socket& bind(const Address::Ptr& addr);
-
-        Socket& listen(int flag = SOMAXCONN);
-
         Socket& setTcpNoDelay(bool on);
 
         Socket& setReuseAddr(bool on);
@@ -39,7 +35,14 @@ namespace net {
 
         Socket& setKeepAlive(bool on);
 
-        [[nodiscard]] int getFd() const { return m_sockfd; }
+        bool bind(const Address::Ptr& addr);
+
+        bool listen(int flag = SOMAXCONN);
+
+        [[CO_AWAIT_HINT]] auto accept(int flags = 0) const noexcept
+        {
+            return asyn::Accept(m_sockfd, nullptr, nullptr, flags);
+        }
 
         [[CO_AWAIT_HINT]] auto connect(Address::Ptr addr) const noexcept
         {
@@ -51,7 +54,7 @@ namespace net {
             return asyn::Recv(m_sockfd, buf, count, flags);
         }
 
-        [[CO_AWAIT_HINT]] auto send(char* buf, int count, int flags = 0) const noexcept
+        [[CO_AWAIT_HINT]] auto send(const char* buf, int count, int flags = 0) const noexcept
         {
             return asyn::Send(m_sockfd, buf, count, flags);
         }
@@ -65,6 +68,8 @@ namespace net {
         }
 
         int shutdownWrite() const noexcept { return ::shutdown(m_sockfd, SHUT_WR); }
+
+        [[nodiscard]] int getFd() const { return m_sockfd; }
 
         [[nodiscard]] Address::Ptr getLocalAddr() const;
 

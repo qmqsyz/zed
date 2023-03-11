@@ -3,5 +3,6 @@ aux_source_directory(coroutine SOURCES)
 aux_source_directory(log SOURCES)
 aux_source_directory(comm SOURCES)
 aux_source_directory(net SOURCES)
+aux_source_directory(http SOURCES)
 
 add_library(zed_lib ${SOURCES})

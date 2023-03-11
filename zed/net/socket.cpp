@@ -18,25 +18,24 @@ namespace net {
         }
     }
 
-    Socket& Socket::bind(const Address::Ptr& addr)
+    bool Socket::bind(const Address::Ptr& addr)
     {
         const int res = ::bind(m_sockfd, addr->getAddr(), addr->getAddrLen());
         if (res != 0) [[unlikely]] {
             LOG_ERROR << "bind failed fd:" << m_sockfd << " bind addr:" << addr->toString()
                       << " failed errinfo:" << strerror(errno);
-            std::terminate();
+            return false;
         }
-        LOG_INFO << "sockfd:" << m_sockfd << " bind " << addr->toString();
-        return *this;
+        return true;
     }
-    Socket& Socket::listen(int flag)
+    bool Socket::listen(int flag)
     {
         const int res = ::listen(m_sockfd, flag);
         if (res != 0) {
             LOG_ERROR << "listen failed errinfo:" << strerror(errno);
-            std::terminate();
+            return false;
         }
-        return *this;
+        return true;
     }
 
     Socket& Socket::setTcpNoDelay(bool on)

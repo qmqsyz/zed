@@ -1,8 +1,8 @@
 #ifndef ZED_NET_ASYNIO_H_
 #define ZED_NET_ASYNIO_H_
 
+#include "zed/coroutine/hint.hpp"
 #include "zed/coroutine/task.hpp"
-#include "zed/detail/hint.hpp"
 #include "zed/net/executor.h"
 #include "zed/net/fd_event.h"
 #include "zed/net/timer.h"
@@ -79,9 +79,10 @@ namespace net {
 
         [[CO_AWAIT_HINT]] coroutine::Task<int> Read(int fd, void* buf, size_t count);
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Write(int fd, void* buf, size_t count);
+        [[CO_AWAIT_HINT]] coroutine::Task<int> Write(int fd, const void* buf, size_t count);
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Send(int fd, void* buf, size_t count, int flags);
+        [[CO_AWAIT_HINT]] coroutine::Task<int>
+        Send(int fd, const void* buf, size_t count, int flags);
 
         [[CO_AWAIT_HINT]] coroutine::Task<int> Recv(int fd, void* buf, size_t count, int flags);
 
