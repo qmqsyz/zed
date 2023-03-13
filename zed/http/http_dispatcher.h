@@ -1,6 +1,7 @@
-#ifndef ZED_NET_HTTP_HTTPDISPATCHER_H_
-#define ZED_NET_HTTP_HTTPDISPATCHER_H_
+#ifndef ZED_HTTP_HTTPDISPATCHER_H_
+#define ZED_HTTP_HTTPDISPATCHER_H_
 
+#include "zed/http/http_codec.h"
 #include "zed/http/http_servlet.h"
 #include "zed/net/tcp_buffer.h"
 
@@ -10,7 +11,7 @@
 
 namespace zed {
 
-namespace net {
+namespace http {
 
     class HttpDispatcher {
     public:
@@ -18,16 +19,17 @@ namespace net {
 
         ~HttpDispatcher() = default;
 
-        void dispatch(HttpRequest& request, TcpBuffer& outbuffer);
+        void dispatch(net::TcpBuffer& input_buffer, net::TcpBuffer& out_buffer);
 
         void registerServlet(const std::string& path, HttpServlet::Ptr servlet);
 
     private:
         std::map<std::string, HttpServlet::Ptr> m_servlets;
+        HttpCodeC                               m_codec;
     };
 
-} // namespace net
+} // namespace http
 
 } // namespace zed
 
-#endif // ZED_NET_HTTP_HTTPDISPATCHER_H_
+#endif // ZED_HTTP_HTTPDISPATCHER_H_

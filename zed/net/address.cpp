@@ -78,7 +78,7 @@ namespace net {
     {
         ::memset(&m_address, 0, sizeof(m_address));
         m_address.sin_family = AF_INET;
-        m_address.sin_port = ::htons(port);
+        m_address.sin_port = htons(port);
         if (::inet_pton(AF_INET, ip.data(), &m_address.sin_addr) != 1) {
             LOG_ERROR << "inet_pton failed [ " << ip << " ] errinfo : " << strerror(errno);
         }
@@ -89,7 +89,7 @@ namespace net {
         ::memset(&m_address, 0, sizeof(m_address));
         m_address.sin_family = AF_INET;
         m_address.sin_addr.s_addr = ::htonl(address);
-        m_address.sin_port = ::htons(port);
+        m_address.sin_port = htons(port);
     }
 
     std::string IPv4Address::toString() const
@@ -117,7 +117,7 @@ namespace net {
     {
         ::memset(&m_address, 0, sizeof(m_address));
         m_address.sin6_family = AF_INET6;
-        m_address.sin6_port = ::htons(port);
+        m_address.sin6_port = htons(port);
         if (::inet_pton(AF_INET6, ip.data(), &m_address.sin6_addr) != 1) {
             LOG_ERROR << "inet_pton failed [ " << ip << " ] errinfo : " << strerror(errno);
         }

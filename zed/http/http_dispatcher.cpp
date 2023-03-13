@@ -5,12 +5,20 @@
 
 namespace zed {
 
-namespace net {
+namespace http {
 
-    void HttpDispatcher::dispatch(HttpRequest& request, TcpBuffer& outbuffer)
+    void HttpDispatcher::dispatch(net::TcpBuffer& input_buffer, net::TcpBuffer& out_buffer)
     {
+        HttpRequest request;
+        m_codec.decode(input_buffer, request);
+
+        if (!request.decode_succ) {
+            return;
+        }
+
         HttpResponse response;
         std::string  url_path = request.m_request_path;
+
         if (!url_path.empty()) {
             auto it = m_servlets.find(url_path);
             if (it == m_servlets.end()) {
@@ -23,8 +31,8 @@ namespace net {
                 it->second->handle(request, response);
             }
         }
-        HttpCodeC c;
-        c.encode(outbuffer, response);
+
+        m_codec.encode(out_buffer, response);
     }
 
     void HttpDispatcher::registerServlet(const std::string& path, HttpServlet::Ptr servlet)
@@ -32,6 +40,6 @@ namespace net {
         m_servlets.emplace(path, servlet);
     }
 
-} // namespace net
+} // namespace http
 
 } // namespace zed

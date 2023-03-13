@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 # if(NOT DEFINED CMAKE_BUILD_TYPE)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 # endif()
 message(STATUS ${CMAKE_BUILD_TYPE})
@@ -23,6 +23,7 @@ set(LIBS
 include_directories(${PROJECT_SOURCE_DIR})
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/zed)
-add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+add_subdirectory(${PROJECT_SOURCE_DIR}/examples)
+add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 
 target_link_libraries(zed_lib ${LIBS})

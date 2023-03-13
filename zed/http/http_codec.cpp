@@ -6,23 +6,23 @@
 
 namespace zed {
 
-namespace net {
+namespace http {
 
-    void HttpCodeC::encode(TcpBuffer& buffer, HttpResponse& response)
+    void HttpCodeC::encode(net::TcpBuffer& output_buffer, HttpResponse& response)
     {
         std::stringstream ss;
         ss << response.m_response_version << " " << response.m_response_code << " "
            << response.m_response_info << "\r\n"
-           << response.m_response_header.toHttpString() << "\r\n"
-           << response.m_response_body;
+           << detail::EncodeHttpHeader(response.m_response_header) << "\r\n"
+           << response.m_response_body << "\r\n";
         std::string str = std::move(ss.str());
-        buffer.append(str.data(), str.size());
+        output_buffer.append(str.data(), str.size());
         response.encode_succ = true;
     }
 
-    void HttpCodeC::decode(TcpBuffer& buffer, HttpRequest& request)
+    void HttpCodeC::decode(net::TcpBuffer& buffer, HttpRequest& request)
     {
-        std::string_view strs = buffer.getStringView();
+        std::string_view strs = buffer.toStringView();
 
         bool is_parse_request_line = false;
         bool is_parse_request_header = false;
@@ -35,7 +35,7 @@ namespace net {
 
         while (true) {
             if (is_parse_request_line == false) {
-                size_t i = tmp.find(g_CRLF);
+                size_t i = tmp.find(detail::g_CRLF);
                 if (i == tmp.npos) {
                     LOG_DEBUG << "not found CRLF";
                     return;
@@ -53,7 +53,7 @@ namespace net {
                 read_size += i + 2;
             }
             if (is_parse_request_header == false) {
-                std::size_t i = tmp.find(g_CRLF_DOUBLE);
+                std::size_t i = tmp.find(detail::g_CRLF_DOUBLE);
                 if (i == tmp.npos) {
                     LOG_DEBUG << "not found CRLF CRLF in buffer";
                     return;
@@ -68,9 +68,7 @@ namespace net {
             }
             if (is_parse_request_content == false) {
                 // if map doesn't have Content-Length use std::stoi will throw exception;
-                int context_len
-                    = std::atoi(request.m_request_header.getValue("Content-Length").c_str());
-                LOG_DEBUG << context_len;
+                int context_len = std::atoi(request.m_request_header["Content-Length"].c_str());
                 if ((int)strs.size() - read_size < context_len) {
                     LOG_DEBUG << "need to read more data";
                     return;
@@ -83,7 +81,6 @@ namespace net {
                     }
                     read_size += context_len;
                 } else {
-                    LOG_DEBUG << "finish";
                     is_parse_request_content = true;
                 }
             }
@@ -98,7 +95,6 @@ namespace net {
 
     bool HttpCodeC::parseHttpRequestLine(HttpRequest& request, const std::string_view& tmp)
     {
-        LOG_DEBUG << "do parse request line";
         std::size_t first_space_index = tmp.find_first_of(" ");
         std::size_t last_space_index = tmp.find_last_of(" ");
         if (first_space_index == tmp.npos || last_space_index == tmp.npos
@@ -166,21 +162,22 @@ namespace net {
 
     bool HttpCodeC::parseHttpRequestHeader(HttpRequest& request, const std::string_view& tmp)
     {
-        LOG_DEBUG << tmp;
         if (tmp.empty() || tmp.size() < 4 || tmp == "\r\n\r\n") {
             return true;
         }
-        util::SplitStrToMap(tmp, "\r\n", ":", request.m_request_header.m_headers);
+        util::SplitStrToMap(tmp, "\r\n", ":", request.m_request_header);
         return true;
     }
 
     bool HttpCodeC::parseHttpRequestContent(HttpRequest& request, const std::string_view& tmp)
     {
-        LOG_DEBUG << "do parse content";
+        if (tmp.empty()) {
+            return true;
+        }
         request.m_request_body = std::string(tmp);
         return true;
     }
 
-} // namespace net
+} // namespace http
 
 } // namespace zed

@@ -28,15 +28,11 @@ namespace net {
 
         void delEvents(int events);
 
-        void remove();
+        void remove(bool from_close = false);
 
         void handleEvent(int revents);
 
         [[nodiscard]] int getFd() const noexcept { return m_fd; }
-
-        void setReadCallback(Func cb) { m_read_callback = std::move(cb); }
-
-        void setWriteCallback(Func cb) { m_write_callback = std::move(cb); }
 
         void setHandle(std::coroutine_handle<> handle) { m_handle = handle; };
 
@@ -48,7 +44,11 @@ namespace net {
 
         void setNonBlock() noexcept;
 
-        [[nodiscard]] bool isNonBlock() noexcept;
+        [[nodiscard]] bool isNonBlock() const noexcept { return m_is_nonblock; };
+
+        void setReadCallback(Func cb) { m_read_callback = std::move(cb); }
+
+        void setWriteCallback(Func cb) { m_write_callback = std::move(cb); }
 
     private:
         void update();
@@ -56,10 +56,11 @@ namespace net {
     protected:
         int                     m_fd {-1};
         int                     m_events {0};
+        bool                    m_is_nonblock {false};
         Executor*               m_executor {nullptr};
+        std::coroutine_handle<> m_handle {nullptr};
         Func                    m_read_callback {};
         Func                    m_write_callback {};
-        std::coroutine_handle<> m_handle {nullptr};
     };
 
     namespace detail {

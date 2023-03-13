@@ -4,60 +4,48 @@
 
 namespace zed {
 
-const char* g_CRLF = "\r\n";
-const char* g_CRLF_DOUBLE = "\r\n\r\n";
-const char* content_type_text = "text/html;charset=utf-8";
-const char* default_html_template = "<html><body><h1>%s</h1><p>%s</p></body></html>";
+namespace http {
 
-const char* HttpCodeToString(const int code)
-{
-    switch (code) {
-    case HTTP_OK:
-        return "OK";
+    namespace detail {
 
-    case HTTP_BADREQUEST:
-        return "Bad Request";
+        const char* g_CRLF = "\r\n";
+        const char* g_CRLF_DOUBLE = "\r\n\r\n";
+        const char* content_type_text = "text/html;charset=utf-8";
+        const char* default_html_template = "<html><body><h1>%s</h1><p>%s</p></body></html>";
 
-    case HTTP_FORBIDDEN:
-        return "Forbidden";
+        const char* HttpCodeToString(const int code)
+        {
+            switch (code) {
+            case HTTP_OK:
+                return "OK";
 
-    case HTTP_NOTFOUND:
-        return "Not Found";
+            case HTTP_BADREQUEST:
+                return "Bad Request";
 
-    case HTTP_INTERNALSERVERERROR:
-        return "Internal Server Error";
+            case HTTP_FORBIDDEN:
+                return "Forbidden";
 
-    default:
-        return "UnKnown code";
-    }
-}
+            case HTTP_NOTFOUND:
+                return "Not Found";
 
-std::string HttpHeader::getValue(const std::string& key)
-{
-    return m_headers[key];
-}
+            case HTTP_INTERNALSERVERERROR:
+                return "Internal Server Error";
 
-void HttpHeader::setKeyValue(const std::string& key, const std::string& value)
-{
-    m_headers.emplace(key, value);
-}
+            default:
+                return "UnKnown code";
+            }
+        }
 
-std::size_t HttpHeader::getHeaderTotalLength()
-{
-    std::size_t len = 0;
-    for (const auto& [key, value] : m_headers) {
-        len += key.size() + 1 + value.size() + 2;
-    }
-    return len;
-}
+        std::string EncodeHttpHeader(const std::map<std::string, std::string>& headers)
+        {
+            std::stringstream ss;
+            for (const auto& [key, value] : headers) {
+                ss << key << ": " << value << "\r\n";
+            }
+            return ss.str();
+        }
+    } // namespace detail
 
-std::string HttpHeader::toHttpString()
-{
-    std::stringstream ss;
-    for (const auto& [key, value] : m_headers) {
-        ss << key << ':' << value << "\r\n";
-    }
-    return ss.str();
-}
+} // namespace http
 
 } // namespace zed

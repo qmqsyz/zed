@@ -35,11 +35,15 @@ namespace net {
             return m_buffer.size() - m_write_index;
         }
 
-        [[nodiscard]] size_t prependableBytes() const noexcept { return m_read_index; }
+        void resize(std::size_t size) { m_buffer.resize(size); }
 
-        [[nodiscard]] const char* peek() const noexcept { return begin() + m_read_index; }
+        [[nodiscard]] std::size_t size() const noexcept { return m_buffer.size(); }
+
+        [[nodiscard]] const char* beginRead() const noexcept { return begin() + m_read_index; }
 
         [[nodiscard]] char* beginWrite() noexcept { return begin() + m_write_index; }
+
+        [[nodiscard]] size_t prependableBytes() const noexcept { return m_read_index; }
 
         void hasWritten(size_t len) noexcept
         {
@@ -47,15 +51,7 @@ namespace net {
             m_write_index += len;
         }
 
-        void unwrite(size_t len) noexcept
-        {
-            assert(len <= readableBytes());
-            m_write_index -= len;
-        }
-
-        [[nodiscard]] const char* beginWrite() const noexcept { return begin() + m_write_index; }
-
-        void retrieve(size_t len) noexcept
+        void hasRead(size_t len) noexcept
         {
             assert(len <= readableBytes());
 
@@ -66,24 +62,27 @@ namespace net {
             }
         }
 
-        void retrieveAll() noexcept { m_read_index = m_write_index = k_cheap_prepend; }
-
-        [[nodiscard]] std::string retrieveAllAsString()
-        {
-            return retrieveAsString(readableBytes());
-        }
-
-        [[nodiscard]] std::string retrieveAsString(size_t len)
+        void unwrite(size_t len) noexcept
         {
             assert(len <= readableBytes());
-            std::string result(peek(), len);
-            retrieve(len);
+            m_write_index -= len;
+        }
+
+        void retrieveAll() noexcept { m_read_index = m_write_index = k_cheap_prepend; }
+
+        [[nodiscard]] std::string retrieveToString() { return retrieveToString(readableBytes()); }
+
+        [[nodiscard]] std::string retrieveToString(size_t len)
+        {
+            assert(len <= readableBytes());
+            std::string result(beginRead(), len);
+            hasRead(len);
             return result;
         }
 
-        [[nodiscard]] std::string_view getStringView() const noexcept
+        [[nodiscard]] std::string_view toStringView() const noexcept
         {
-            return std::string_view(peek(), readableBytes());
+            return std::string_view(beginRead(), readableBytes());
         }
 
         void append(const void* data, size_t len)

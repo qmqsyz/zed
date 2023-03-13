@@ -1,4 +1,4 @@
-#include "test/time_test.h"
+#include "tests/time_test.h"
 #include "zed/log/log.h"
 
 #include <iostream>

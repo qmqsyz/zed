@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <functional>
+#include <list>
 #include <mutex>
 #include <queue>
 #include <sys/epoll.h>
@@ -38,7 +39,7 @@ namespace net {
 
         void addTask(coroutine::Task<>&& task, bool is_wakeup = true);
 
-        void addTask(std::function<void()> task, bool is_wakeup = true);
+        // void addTask(std::function<void()> task, bool is_wakeup = true);
 
         void start();
 
@@ -70,7 +71,7 @@ namespace net {
 
         void doInitHandle();
 
-        void doRemainHanlde();
+        void destroyHanlde();
 
     private:
         int                    m_epoll_fd {-1};
@@ -88,7 +89,7 @@ namespace net {
 
         std::mutex                           m_handles_mutex {};
         std::vector<std::coroutine_handle<>> m_init_handles {};
-        std::vector<std::coroutine_handle<>> m_remain_handles {};
+        std::list<std::coroutine_handle<>>   m_remain_handles {};
 
         ExecutorType m_executor_type {Sub};
     };

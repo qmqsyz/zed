@@ -43,13 +43,16 @@ namespace net {
         LOG_DEBUG << "the event do not exist";
     }
 
-    void FdEvent::remove()
+    void FdEvent::remove(bool from_close)
     {
         m_executor->delEvent(m_fd);
         m_events = 0;
         m_executor = nullptr;
         m_read_callback = nullptr;
         m_write_callback = nullptr;
+        if (from_close) {
+            m_is_nonblock = false;
+        }
         LOG_DEBUG << "remove fd [ " << m_fd << " ] from executor";
     };
 
@@ -85,28 +88,19 @@ namespace net {
             LOG_ERROR << "m_fd == -1";
             return;
         }
-        int flag = ::fcntl(m_fd, F_GETFL, 0);
-        if (flag & O_NONBLOCK) [[likely]] {
+        if (m_is_nonblock) [[likely]] {
             LOG_DEBUG << "fd:" << m_fd << " already set nonblock";
             return;
         }
+        int flag = ::fcntl(m_fd, F_GETFL, 0);
         ::fcntl(m_fd, F_SETFL, flag | O_NONBLOCK);
         flag = ::fcntl(m_fd, F_GETFL, 0);
         if (flag & O_NONBLOCK) {
-            LOG_DEBUG << "succ set o_nonblock";
+            m_is_nonblock = true;
+            LOG_DEBUG << "set o_nonblock succeeded fd [ " << m_fd << " ]";
         } else {
-            LOG_ERROR << "set o_nonblock error";
+            LOG_ERROR << "set o_nonblock failed fd [ " << m_fd << " ]";
         }
-    }
-
-    bool FdEvent::isNonBlock() noexcept
-    {
-        if (m_fd == -1) {
-            LOG_ERROR << "error, fd=-1";
-            return false;
-        }
-        int flag = ::fcntl(m_fd, F_GETFL, 0);
-        return (flag & O_NONBLOCK);
     }
 
     namespace detail {

@@ -17,62 +17,61 @@ namespace net {
                 auto fd_event = FdManager::GetInstance().getFdEvent(fd);
                 fd_event->setExecutor(Executor::GetCurrentExecutor());
                 fd_event->setNonBlock();
-                // LOG_DEBUG << "init FdEvent";
                 return fd_event;
             }
 
         } // namespace detail
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Read(int fd, void* buf, size_t count)
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t> Read(int fd, void* buf, size_t count)
         {
             auto fd_event = detail::InitFdEvent(fd);
-            int  n = ::read(fd, buf, count);
-            if (n > 0) {
-                co_return n;
+            auto ret = ::read(fd, buf, count);
+            if (ret > 0) {
+                co_return ret;
             }
             co_await detail::AddEventAwaiter(fd_event, EPOLLIN);
             co_return ::read(fd, buf, count);
         }
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Write(int fd, const void* buf, size_t count)
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t> Write(int fd, const void* buf, size_t count)
         {
             auto fd_event = detail::InitFdEvent(fd);
-            int  n = ::write(fd, buf, count);
-            if (n > 0) {
-                co_return n;
+            auto ret = ::write(fd, buf, count);
+            if (ret > 0) {
+                co_return ret;
             }
             co_await detail::AddEventAwaiter(fd_event, EPOLLOUT);
             co_return ::write(fd, buf, count);
         }
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int>
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t>
         Send(int fd, const void* buf, size_t count, int flags)
         {
             auto fd_event = detail::InitFdEvent(fd);
-            int  n = ::send(fd, buf, count, flags);
-            if (n > 0) {
-                co_return n;
+            auto ret = ::send(fd, buf, count, flags);
+            if (ret > 0) {
+                co_return ret;
             }
             co_await detail::AddEventAwaiter(fd_event, EPOLLOUT);
             co_return ::send(fd, buf, count, flags);
         }
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Recv(int fd, void* buf, size_t count, int flags)
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t> Recv(int fd, void* buf, size_t count, int flags)
         {
             auto fd_event = detail::InitFdEvent(fd);
-            int  n = ::recv(fd, buf, count, flags);
-            if (n > 0) {
-                co_return n;
+            auto ret = ::recv(fd, buf, count, flags);
+            if (ret > 0) {
+                co_return ret;
             }
             co_await detail::AddEventAwaiter(fd_event, EPOLLIN);
             co_return ::recv(fd, buf, count, flags);
         }
 
         [[CO_AWAIT_HINT]] coroutine::Task<int>
-        Connect(int sockfd, const sockaddr* addr, socklen_t addrlen)
+        Connect(int fd, const sockaddr* addr, socklen_t addr_len)
         {
-            auto fd_event = detail::InitFdEvent(sockfd);
-            int  ret = ::connect(sockfd, addr, addrlen);
+            auto fd_event = detail::InitFdEvent(fd);
+            auto ret = ::connect(fd, addr, addr_len);
             if (ret == 0) {
                 co_return ret;
             } else if (ret != EINPROGRESS) {
@@ -80,8 +79,8 @@ namespace net {
                 co_return ret;
             }
             bool is_timeout = co_await detail::TimerEventAwaiter(fd_event, EPOLLOUT);
-            int  n = ::connect(sockfd, addr, addrlen);
-            if ((n < 0 && errno == EISCONN) || n == 0) {
+            ret = ::connect(fd, addr, addr_len);
+            if ((ret < 0 && errno == EISCONN) || ret == 0) {
                 LOG_DEBUG << "connect successed";
                 co_return 0;
             }
@@ -94,26 +93,47 @@ namespace net {
         }
 
         [[CO_AWAIT_HINT]] coroutine::Task<int>
-        Accept(int sockfd, sockaddr* addr, socklen_t* addrlen, int flags)
+        Accept(int fd, sockaddr* addr, socklen_t* addr_len, int flags)
         {
-            auto fd_event = detail::InitFdEvent(sockfd);
-            int  n = ::accept4(sockfd, addr, addrlen, flags);
-            if (n > 0) {
-                co_return n;
+            auto fd_event = detail::InitFdEvent(fd);
+            auto ret = ::accept4(fd, addr, addr_len, flags);
+            if (ret >= 0) {
+                co_return ret;
             }
             co_await detail::AddEventAwaiter(fd_event, EPOLLIN);
-            co_return ::accept4(sockfd, addr, addrlen, flags);
+            co_return ::accept4(fd, addr, addr_len, flags);
         }
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Close(int sockfd)
+        [[CO_AWAIT_HINT]] coroutine::Task<int> Close(int fd)
         {
-            FdManager::GetInstance().getFdEvent(sockfd)->remove();
-            co_return ::close(sockfd);
+            FdManager::GetInstance().getFdEvent(fd)->remove();
+            co_return ::close(fd);
         }
 
-        [[CO_AWAIT_HINT]] coroutine::Task<void> Sleep(std::chrono::milliseconds m);
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t> Readv(int fd, const struct iovec* vec, int count)
+        {
+            auto fd_event = detail::InitFdEvent(fd);
+            auto ret = ::readv(fd, vec, count);
+            if (ret > 0) {
+                co_return ret;
+            }
+            co_await detail::AddEventAwaiter(fd_event, EPOLLIN);
+            co_return ::readv(fd, vec, count);
+        }
 
-        // [[CO_AWAIT_HINT]] coroutine::Task<int> Shutdown(int sockfd, int flag) { }
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t>
+        Writev(int fd, const struct iovec* vec, int count)
+        {
+            auto fd_event = detail::InitFdEvent(fd);
+            auto ret = ::writev(fd, vec, count);
+            if (ret > 0) {
+                co_return ret;
+            }
+            co_await detail::AddEventAwaiter(fd_event, EPOLLOUT);
+            co_return ::writev(fd, vec, count);
+        }
+
+        // [[CO_AWAIT_HINT]] coroutine::Task<int> Shutdown(int fd, int flag) { }
 
     } // namespace asyn
 

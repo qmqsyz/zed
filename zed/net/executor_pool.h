@@ -19,13 +19,15 @@ namespace net {
 
         void start();
 
+        void stop();
+
         [[nodiscard]] Executor* getExecutor();
 
         [[nodiscard]] Executor* getExecutor(int index);
 
     private:
-        bool                                 m_is_started {false};
-        int                                  m_thread_num {0};
+        bool                                 m_is_stop {true};
+        std::size_t                          m_thread_num {0};
         int                                  m_index {0};
         std::vector<std::unique_ptr<Thread>> m_threads {};
         std::vector<Executor*>               m_executors {};

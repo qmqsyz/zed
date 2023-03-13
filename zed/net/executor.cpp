@@ -130,13 +130,14 @@ namespace net {
         }
 
         if (epoll_ctl(m_epoll_fd, operation, fd, &event) != 0) {
-            LOG_ERROR << "epoll_ctl failed fd = " << fd << " sys errinfo = " << strerror(errno);
+            LOG_ERROR << "epoll_ctl" << (is_add ? " add " : " mod ") << " failed fd = " << fd
+                      << " sys errinfo = " << strerror(errno);
             return;
         }
         if (is_add) {
             m_fds.emplace(fd);
         }
-        LOG_DEBUG << (is_add ? " add " : " mod ") << "fd = " << fd << " successfully";
+        LOG_DEBUG << (is_add ? " add " : " mod ") << "fd [ " << fd << " ] successfully";
     }
 
     void Executor::delEventInLoopThread(int fd)
@@ -149,10 +150,10 @@ namespace net {
             return;
         }
         if (epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, fd, nullptr) != 0) {
-            LOG_DEBUG << "epoll_ctl failed fd = " << fd << " sys errinfo = " << strerror(errno);
+            LOG_ERROR << "epoll_ctl failed fd = " << fd << " sys errinfo = " << strerror(errno);
         }
         m_fds.erase(it);
-        LOG_DEBUG << "delete fd = " << fd << " successfully";
+        // LOG_DEBUG << "delete fd = " << fd << " successfully";
     }
 
     void Executor::addTask(coroutine::Task<>&& task, bool is_wakeup)
@@ -169,15 +170,15 @@ namespace net {
         }
     }
 
-    void Executor::addTask(std::function<void()> task, bool is_wakeup)
-    {
-        std::lock_guard lock(m_mutex);
-        m_pendding_tasks.emplace_back(std::move(task));
-        LOG_DEBUG << "add task successfully";
-        if (is_wakeup) [[likely]] {
-            wakeup();
-        }
-    }
+    // void Executor::addTask(std::function<void()> task, bool is_wakeup)
+    // {
+    //     std::lock_guard lock(m_mutex);
+    //     m_pendding_tasks.emplace_back(std::move(task));
+    //     LOG_DEBUG << "add task successfully";
+    //     if (is_wakeup) [[likely]] {
+    //         wakeup();
+    //     }
+    // }
 
     void Executor::start()
     {
@@ -198,18 +199,6 @@ namespace net {
         while (m_stop_flag == false) {
 
             doInitHandle();
-            // LOG_DEBUG << "finished doInitHandle";
-            if (m_executor_type == Sub) {
-                consumeCoroutines();
-                // LOG_DEBUG << "finished consumeCoroutines";
-            }
-            doRemainHanlde();
-            // LOG_DEBUG << "finished doRemainHandle";
-
-            if (first_handle) {
-                first_handle.resume();
-                first_handle = nullptr;
-            }
 
             consumePenddingTasks();
             // LOG_DEBUG << "finished consumePenddingTask";
@@ -226,11 +215,12 @@ namespace net {
 
                     if (event.data.fd == m_wake_fd && (event.events & EPOLLIN)) {
                         char buf[8];
-                        if (read(m_wake_fd, buf, sizeof(buf)) != sizeof(8)) {
+                        if (read(m_wake_fd, buf, sizeof(buf)) != sizeof(buf)) {
                             LOG_DEBUG << "read wake_fd failed errinfo = " << strerror(errno);
                         }
                     } else {
                         FdEvent* ptr = static_cast<FdEvent*>(event.data.ptr);
+                        auto     fd = ptr->getFd();
                         if (ptr == nullptr) [[unlikely]] {
                             continue;
                         }
@@ -239,7 +229,7 @@ namespace net {
                                 if (first_handle == nullptr) {
                                     first_handle = ptr->getHandle();
                                 } else {
-                                    delEventInLoopThread(event.data.fd);
+                                    delEventInLoopThread(fd);
                                     // Excutor of FdEvent will change when it be used
                                     TaskManager::GetInstance().push(ptr);
                                 }
@@ -252,6 +242,17 @@ namespace net {
                     }
                 }
             }
+
+            if (first_handle) {
+                first_handle.resume();
+                first_handle = nullptr;
+            }
+
+            if (m_executor_type == Sub) {
+                consumeCoroutines();
+            }
+
+            destroyHanlde();
         }
     }
 
@@ -313,22 +314,23 @@ namespace net {
         for (auto handle : handle_tmp) {
             // LOG_DEBUG << "resun a handle";
             handle.resume();
-            m_remain_handles.emplace_back(std::move(handle));
+            if (handle.done()) {
+                handle.destroy();
+            } else {
+                m_remain_handles.push_back(handle);
+            }
         }
     }
 
     // do not lock only loop can execute the func
-    void Executor::doRemainHanlde()
+    void Executor::destroyHanlde()
     {
-        std::vector<std::coroutine_handle<>> handle_tmp;
-        handle_tmp.swap(m_remain_handles);
-        for (auto handle : handle_tmp) {
-            if (handle.done()) {
-                // LOG_DEBUG << "destroy a handle";
-                handle.destroy();
+        for (auto it = m_remain_handles.begin(); it != m_remain_handles.end();) {
+            if (it->done()) {
+                it->destroy();
+                it = m_remain_handles.erase(it);
             } else {
-                // LOG_DEBUG << "handle is no't finished";
-                m_remain_handles.emplace_back(std::move(handle));
+                ++it;
             }
         }
     }

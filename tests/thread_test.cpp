@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-#include "test/time_test.h"
+#include "tests/time_test.h"
 
 using namespace zed;
 

@@ -2,6 +2,7 @@
 #include "zed/log/log.h"
 
 #include <assert.h>
+#include <fcntl.h>
 #include <netinet/tcp.h>
 
 namespace zed {
@@ -12,10 +13,10 @@ namespace net {
 
     Socket::~Socket() noexcept
     {
-        auto ptr = FdManager::GetInstance().getFdEvent(m_sockfd)->getExecutor();
-        if (ptr != nullptr) {
-            this->close();
+        if (m_sockfd == -1) {
+            return;
         }
+        this->close();
     }
 
     bool Socket::bind(const Address::Ptr& addr)
@@ -38,40 +39,44 @@ namespace net {
         return true;
     }
 
-    Socket& Socket::setTcpNoDelay(bool on)
+    bool Socket::setTcpNoDelay(bool on)
     {
         int optval = on ? 1 : 0;
         if (::setsockopt(m_sockfd, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(optval))) {
             LOG_ERROR << "set tcp no delay failed errinfo:" << strerror(errno);
+            return false;
         }
-        return *this;
+        return true;
     }
 
-    Socket& Socket::setReuseAddr(bool on)
+    bool Socket::setReuseAddr(bool on)
     {
         int optval = on ? 1 : 0;
         if (::setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval))) {
             LOG_ERROR << "set reuse address failed errinfo:" << strerror(errno);
+            return false;
         }
-        return *this;
+        return true;
     }
 
-    Socket& Socket::setReusePort(bool on)
+    bool Socket::setReusePort(bool on)
     {
         int optval = on ? 1 : 0;
         if (::setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval))) {
             LOG_ERROR << "set reuse port failed errinfo:" << strerror(errno);
+            return false;
         }
-        return *this;
+        return true;
     }
 
-    Socket& Socket::setKeepAlive(bool on)
+    bool Socket::setKeepAlive(bool on)
     {
         int optval = on ? 1 : 0;
         if (::setsockopt(m_sockfd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval))) {
             LOG_ERROR << "set keep alive failed errinfo:" << strerror(errno);
+            return false;
         }
-        return *this;
+        return true;
     }
 
     [[nodiscard]] Address::Ptr Socket::getLocalAddr() const

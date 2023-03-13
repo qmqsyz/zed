@@ -1,20 +1,20 @@
 #ifndef ZED_NET_HTTP_HTTPCODEC_H_
 #define ZED_NET_HTTP_HTTPCODEC_H_
 
-#include "zed/http/http_struct.h"
+#include "zed/http/http_define.h"
 #include "zed/net/tcp_buffer.h"
 
 namespace zed {
 
-namespace net {
+namespace http {
 
     class HttpCodeC {
     public:
         HttpCodeC() = default;
 
-        void encode(TcpBuffer& buf, HttpResponse& response);
+        void encode(net::TcpBuffer& input_buffer, HttpResponse& response);
 
-        void decode(TcpBuffer& buf, HttpRequest& request);
+        void decode(net::TcpBuffer& output_buffer, HttpRequest& request);
 
     private:
         bool parseHttpRequestLine(HttpRequest& requset, const std::string_view& tmp);
@@ -24,7 +24,7 @@ namespace net {
         bool parseHttpRequestContent(HttpRequest& requset, const std::string_view& tmp);
     };
 
-} // namespace net
+} // namespace http
 
 } // namespace zed
 

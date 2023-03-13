@@ -77,22 +77,28 @@ namespace net {
 
         } // namespace detail
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Read(int fd, void* buf, size_t count);
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t> Read(int fd, void* buf, size_t count);
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Write(int fd, const void* buf, size_t count);
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t> Write(int fd, const void* buf, size_t count);
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int>
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t>
         Send(int fd, const void* buf, size_t count, int flags);
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Recv(int fd, void* buf, size_t count, int flags);
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t> Recv(int fd, void* buf, size_t count, int flags);
 
         [[CO_AWAIT_HINT]] coroutine::Task<int>
-        Connect(int sockfd, const sockaddr* addr, socklen_t addrlen);
+        Connect(int fd, const sockaddr* addr, socklen_t addrlen);
 
         [[CO_AWAIT_HINT]] coroutine::Task<int>
-        Accept(int sockfd, sockaddr* addr, socklen_t* addrlen, int flags);
+        Accept(int fd, sockaddr* addr, socklen_t* addrlen, int flags);
 
-        [[CO_AWAIT_HINT]] coroutine::Task<int> Close(int sockfd);
+        [[CO_AWAIT_HINT]] coroutine::Task<int> Close(int fd);
+
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t>
+        Readv(int fd, const struct iovec* vec, int count);
+
+        [[CO_AWAIT_HINT]] coroutine::Task<ssize_t>
+        Writev(int fd, const struct iovec* vec, int count);
 
         // [[CO_AWAIT_HINT]] coroutine::Task<int> Shutdown(int sockfd, int flag);
     } // namespace asyn

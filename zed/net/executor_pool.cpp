@@ -14,16 +14,14 @@ namespace net {
 
     ExecutorPool::~ExecutorPool()
     {
-        for (auto& executor : m_executors) {
-            executor->stop();
-        }
-        for (auto& thread : m_threads) {
-            thread->join();
+        if (!m_is_stop) {
+            stop();
         }
     }
 
     void ExecutorPool::start()
     {
+        m_is_stop = false;
         m_executors.reserve(m_thread_num);
         m_threads.reserve(m_thread_num);
 
@@ -41,11 +39,20 @@ namespace net {
         }
     }
 
+    void ExecutorPool::stop()
+    {
+        m_is_stop = true;
+        for (auto& executor : m_executors) {
+            executor->stop();
+        }
+        for (auto& thread : m_threads) {
+            thread->join();
+        }
+    }
+
     [[nodiscard]] Executor* ExecutorPool::getExecutor()
     {
-        if (m_index == m_thread_num) {
-            m_index = 0;
-        }
+        m_index %= m_thread_num;
         return m_executors[m_index++];
     }
 

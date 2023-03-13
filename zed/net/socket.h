@@ -27,13 +27,13 @@ namespace net {
             return *this;
         }
 
-        Socket& setTcpNoDelay(bool on);
+        bool setTcpNoDelay(bool on);
 
-        Socket& setReuseAddr(bool on);
+        bool setReuseAddr(bool on);
 
-        Socket& setReusePort(bool on);
+        bool setReusePort(bool on);
 
-        Socket& setKeepAlive(bool on);
+        bool setKeepAlive(bool on);
 
         bool bind(const Address::Ptr& addr);
 
@@ -59,15 +59,25 @@ namespace net {
             return asyn::Send(m_sockfd, buf, count, flags);
         }
 
+        [[CO_AWAIT_HINT]] auto readv(const iovec* vec, int count)
+        {
+            return asyn::Readv(m_sockfd, vec, count);
+        }
+
+        [[CO_AWAIT_HINT]] auto writev(const iovec* vec, int count)
+        {
+            return asyn::Writev(m_sockfd, vec, count);
+        }
+
         int close() noexcept
         {
             const int tmp {m_sockfd};
             m_sockfd = -1;
-            FdManager::GetInstance().getFdEvent(tmp)->remove();
+            FdManager::GetInstance().getFdEvent(tmp)->remove(true);
             return ::close(tmp);
         }
 
-        int shutdownWrite() const noexcept { return ::shutdown(m_sockfd, SHUT_WR); }
+        // int shutdownWrite() const noexcept { return ::shutdown(m_sockfd, SHUT_WR); }
 
         [[nodiscard]] int getFd() const { return m_sockfd; }
 

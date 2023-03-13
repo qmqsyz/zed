@@ -1,48 +1,66 @@
-// #ifndef ZED_NET_TCPSERVER_H_
-// #define ZED_NET_TCPSERVER_H_
+#ifndef ZED_NET_TCPSERVER_H_
+#define ZED_NET_TCPSERVER_H_
 
-// #include "zed/net/acceptor.h"
-// #include "zed/net/address.h"
-// #include "zed/net/executor_pool.h"
+#include "zed/coroutine/task.hpp"
+#include "zed/net/address.h"
+#include "zed/net/executor_pool.h"
+#include "zed/net/socket.h"
+#include "zed/net/tcp_buffer.h"
+#include "zed/util/noncopyable.h"
 
-// #include <sys/types.h>
+#include <functional>
+#include <string>
+#include <sys/types.h>
 
-// namespace zed {
+namespace zed {
 
-// namespace net {
+namespace net {
 
-//     class TcpServer {
-//     public:
-//         TcpServer(size_t thread_num);
+    class TcpServer : util::Noncopyable {
+    public:
+        using MessageFunc = std::function<void(TcpBuffer&, TcpBuffer&)>;
 
-//         virtual ~TcpServer();
+        TcpServer(std::size_t thread_num);
 
-//         void start();
+        virtual ~TcpServer();
 
-//         bool TcpServer::bind(Address::Ptr addr);
+        void start();
 
-//         bool TcpServer::bind(const std::vector<Address::Ptr>& addrs,
-//                              std::vector<Address::Ptr>&       fails);
+        void stop();
 
-//         void setRecvTimeout(uint64_t time_out) noexcept { m_recv_timeout = time_out; }
+        bool bind(const Address::Ptr& addr);
 
-//     protected:
-//         virtual coroutine::Task<void> handleClient(int fd);
+        bool bind(const std::vector<Address::Ptr>& addrs, std::vector<Address::Ptr>& fails);
 
-//         virtual coroutine::Task<void> startAccept(Socket& sock);
+        void setRecvTimeout(int64_t timeout) noexcept { m_recv_timeout = timeout; }
 
-//     private:
-//         std::string         m_name;
-//         std::string         m_type {"tcp"};
-//         std::vector<Socket> m_listen_socks;
-//         Executor            m_accept_executor;
-//         ExecutorPool        m_executor_pool;
-//         uint64_t            m_recv_timeout;
-//         bool                m_is_stop;
-//     };
+        int64_t getRecvTimeout() const noexcept { return m_recv_timeout; }
 
-// } // namespace net
+        void setName(const std::string&& name) { m_name = name; }
 
-// } // namespace zed
+        const std::string& getName() const { return m_name; }
 
-// #endif // ZED_NET_TCPSERVER_H_
+        bool isStop() const { return m_is_stop; }
+
+        void setMessageCallback(MessageFunc cb) noexcept { m_message_callback = std::move(cb); }
+
+    private:
+        coroutine::Task<void> handleClient(int fd);
+
+        coroutine::Task<void> startAccept(Socket& sock);
+
+    private:
+        std::string         m_name {};
+        std::vector<Socket> m_listen_socks {};
+        Executor            m_accept_executor {};
+        ExecutorPool        m_executor_pool;
+        int64_t             m_recv_timeout {0}; /// @brief millisecond
+        bool                m_is_stop {true};
+        MessageFunc         m_message_callback {nullptr};
+    };
+
+} // namespace net
+
+} // namespace zed
+
+#endif // ZED_NET_TCPSERVER_H_

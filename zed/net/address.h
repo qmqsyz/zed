@@ -3,6 +3,7 @@
 
 #include <arpa/inet.h>
 #include <memory>
+#include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -72,9 +73,9 @@ namespace net {
 
         std::string toString() const override;
 
-        uint32_t getPort() const override { return ::ntohs(m_address.sin_port); }
+        uint32_t getPort() const override { return ntohs(m_address.sin_port); }
 
-        void setPort(uint16_t port) override { m_address.sin_port = ::htons(port); };
+        void setPort(uint16_t port) override { m_address.sin_port = htons(port); };
 
     private:
         sockaddr_in m_address;
@@ -103,9 +104,9 @@ namespace net {
 
         std::string toString() const override;
 
-        uint32_t getPort() const override { return ::ntohs(m_address.sin6_port); }
+        uint32_t getPort() const override { return ntohs(m_address.sin6_port); }
 
-        void setPort(uint16_t port) override { m_address.sin6_port = ::htons(port); };
+        void setPort(uint16_t port) override { m_address.sin6_port = htons(port); };
 
     private:
         sockaddr_in6 m_address;
