@@ -9,7 +9,7 @@ using namespace zed;
 using namespace zed::net;
 using namespace zed::http;
 
-const char* html = "<html><body><h1>Welcome to TinyRPC, just enjoy it!</h1><p>%s</p></body></html>";
+const char* html = "<html><body><h1>The unseen blade is the deadliest </h1><p>%s</p></body></html>";
 
 class QPSHttpServlet : public HttpServlet {
 public:
