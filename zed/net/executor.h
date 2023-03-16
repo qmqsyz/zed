@@ -54,7 +54,7 @@ namespace net {
     public:
         static Executor* GetCurrentExecutor() noexcept;
 
-        static int GetEpollTimeout() noexcept;
+        static std::chrono::milliseconds& GetEpollTimeout() noexcept;
 
     private:
         void wakeup();

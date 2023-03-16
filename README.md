@@ -1,5 +1,5 @@
 # ZED
-zed是一个基于C++20在linux系统下实现的高性能分布式服务器框架，参考sylar以及muduo。
+zed是一个基于C++20在linux系统下实现的高性能网络编程库，参考tinyrpc,sylar以及muduo。
 
 # 1.日志模块
 参照sylar和muduo的日志。  

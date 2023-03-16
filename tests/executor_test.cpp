@@ -31,13 +31,12 @@ struct TMP {
 Task<int> count_lines()
 {
     co_await TMP {};
-    throw std::logic_error("test exception");
+    // throw std::logic_error("test exception");
     co_return g_index;
 }
 
 Task<> usage_example()
 {
-    throw std::logic_error("test first exception");
     try {
         int lineCount = co_await count_lines();
         std::cout << "line count = " << lineCount << std::endl;
@@ -54,7 +53,7 @@ int main()
 
     net::Executor executor;
 
-    net::TimerEvent::Ptr done(new net::TimerEvent(5000, false, [&]() { executor.stop(); }));
+    net::TimerEvent::Ptr done(new net::TimerEvent(5s, false, [&]() { executor.stop(); }));
     executor.getTimer()->addTimerEvent(done);
     std::thread t([&]() {
         for (int i = 0; i < 1000; ++i) {

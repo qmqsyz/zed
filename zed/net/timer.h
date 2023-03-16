@@ -3,10 +3,13 @@
 
 #include "zed/net/fd_event.h"
 
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <set>
 #include <shared_mutex>
+
+using namespace std::chrono_literals;
 
 namespace zed {
 
@@ -28,8 +31,8 @@ namespace net {
         /// @brief the constructer only for onTimer use
         explicit TimerEvent(int64_t now) : m_expired_time(now) { }
 
-        TimerEvent(int64_t interval, bool is_repeated, Func task)
-            : m_interval(interval), m_is_repeated(is_repeated), m_task(std::move(task))
+        TimerEvent(const std::chrono::milliseconds& interval, bool is_repeated, Func task)
+            : m_interval(interval.count()), m_is_repeated(is_repeated), m_task(std::move(task))
         {
             m_expired_time = GetNowMicroSecond() + m_interval;
         }

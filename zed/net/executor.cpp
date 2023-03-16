@@ -10,14 +10,14 @@ namespace net {
 
     static thread_local Executor* t_executor {nullptr};
 
-    static thread_local int t_max_epoll_timeout {10000};
+    static thread_local std::chrono::milliseconds t_max_epoll_timeout {10000};
 
     Executor* Executor::GetCurrentExecutor() noexcept
     {
         return t_executor;
     }
 
-    int Executor::GetEpollTimeout() noexcept
+    std::chrono::milliseconds& Executor::GetEpollTimeout() noexcept
     {
         return t_max_epoll_timeout;
     }
@@ -206,7 +206,7 @@ namespace net {
             consumePenddingTasks();
             // LOG_DEBUG << "finished consumePenddingTask";
 
-            int cnt = epoll_wait(m_epoll_fd, re_events, MAX_EVENTS, t_max_epoll_timeout);
+            int cnt = epoll_wait(m_epoll_fd, re_events, MAX_EVENTS, t_max_epoll_timeout.count());
 
             LOG_DEBUG << cnt << " events happened";
 
