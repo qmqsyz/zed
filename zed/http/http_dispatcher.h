@@ -19,7 +19,7 @@ namespace http {
 
         ~HttpDispatcher() = default;
 
-        void dispatch(net::TcpBuffer& input_buffer, net::TcpBuffer& out_buffer);
+        void dispatch(net::TcpBuffer& input_buffer, net::TcpBuffer& out_buffer, bool& close_flag);
 
         void registerServlet(const std::string& path, HttpServlet::Ptr servlet);
 

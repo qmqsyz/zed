@@ -24,6 +24,7 @@ namespace net {
 
         friend class Timer;
 
+    public:
         /// @brief the constructer only for onTimer use
         explicit TimerEvent(int64_t now) : m_expired_time(now) { }
 

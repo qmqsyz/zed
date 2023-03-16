@@ -16,7 +16,9 @@ namespace coroutine {
     namespace detail {
 
         struct TaskPromiseBase {
-            std::coroutine_handle<> m_parent_coroutine {std::noop_coroutine()};
+            // std::coroutine_handle<> m_parent_coroutine {std::noop_coroutine()};
+
+            std::coroutine_handle<> m_parent_coroutine {nullptr};
 
             struct TaskFinalAwaiter {
 
@@ -26,8 +28,13 @@ namespace coroutine {
                 std::coroutine_handle<>
                 await_suspend(std::coroutine_handle<PromiseType> who_call_me) noexcept
                 {
-                    // transfer running rights to it's parent coroutine
-                    return who_call_me.promise().m_parent_coroutine;
+                    // transfer running rights to it's parent coroutin
+                    if (who_call_me.promise().m_parent_coroutine) {
+                        return who_call_me.promise().m_parent_coroutine;
+                    } else {
+                        who_call_me.destroy();
+                        return std::noop_coroutine();
+                    }
                 }
 
                 // This function will not never be executed
@@ -105,32 +112,6 @@ namespace coroutine {
         private:
             std::exception_ptr m_exception {};
         };
-
-        // template <typename T>
-        // class TaskPromise<T&> final : public TaskPromiseBase {
-        // public:
-        //     TaskPromise() noexcept = default;
-
-        //     Task<T&> get_return_object() noexcept
-        //     {
-        //         Task<T&> {std::coroutine_handle<TaskPromise>::from_promise(*this)};
-        //     }
-
-        //     void unhaneled_exception() noexcept { m_exception = std::current_exception(); }
-
-        //     void return_value(T& value) noexcept { m_value = std::addressof(value); }
-
-        //     T& result()
-        //     {
-        //         if (m_exception) {
-        //             std::rethrow_exception(m_exception);
-        //         }
-        //     }
-
-        // private:
-        //     T*                 m_value {nullptr};
-        //     std::exception_ptr m_exception {};
-        // };
 
     } // namespace detail
 

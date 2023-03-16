@@ -127,7 +127,7 @@ namespace net {
     {
         char buf[8];
         if (int n = ::read(m_fd, buf, sizeof(buf)); n != sizeof(buf)) {
-            LOG_DEBUG << "errinfo" << errno << " " << strerror(errno) << " " << n << " " << m_fd;
+            LOG_ERROR << "errinfo" << errno << " " << strerror(errno) << " " << n << " " << m_fd;
         }
 
         std::vector<TimerEvent::Ptr> expired_timer_events;
@@ -143,6 +143,7 @@ namespace net {
             expired_timer_events.insert(expired_timer_events.end(), m_pending_events.begin(), it);
             m_pending_events.erase(m_pending_events.begin(), it);
         }
+
         std::vector<std::function<void()>> tasks;
         for (auto& event : expired_timer_events) {
             if (event->m_is_canceled) {

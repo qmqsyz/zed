@@ -18,7 +18,9 @@ namespace http {
         void registerServlet(const std::string& path, const HttpServlet::Ptr& servlet);
 
     private:
-        void messageCallback(net::TcpBuffer& input_buffer, net::TcpBuffer& output_buffer);
+        void messageCallback(net::TcpBuffer& input_buffer,
+                             net::TcpBuffer& output_buffer,
+                             bool&           close_flag);
 
     private:
         HttpDispatcher m_dispatcher;

@@ -7,7 +7,7 @@ using namespace zed;
 using namespace zed::coroutine;
 using namespace zed::net;
 
-void echo(TcpBuffer& in, TcpBuffer& out)
+void echo(TcpBuffer& in, TcpBuffer& out, bool& close_flag)
 {
     in.swap(out);
 }

@@ -18,7 +18,7 @@ namespace net {
 
     class TcpServer : util::Noncopyable {
     public:
-        using MessageFunc = std::function<void(TcpBuffer&, TcpBuffer&)>;
+        using MessageFunc = std::function<void(TcpBuffer&, TcpBuffer&, bool&)>;
 
         TcpServer(std::size_t thread_num);
 

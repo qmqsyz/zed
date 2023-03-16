@@ -26,8 +26,8 @@ namespace net {
 
     FdEvent::~FdEvent()
     {
-        // NOTICE:  FdEvent don't possess the fd, it only package fd and event.
-        //          FdEvent exists longer than executor
+        // Fd被一个单例对象FdManager管理，FdManager只有在程序结束的时候才析构。
+        // 也就是说FdManager的生命周期长与executor。
 
         // remove();
         // ::close(m_fd);

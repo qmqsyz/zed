@@ -13,7 +13,7 @@ using namespace coroutine;
 
 std::coroutine_handle<> ghandle;
 
-std::atomic<int> g_index {0};
+std::atomic<int> g_index {10};
 
 struct TMP {
     constexpr bool await_ready() { return false; }
@@ -31,13 +31,19 @@ struct TMP {
 Task<int> count_lines()
 {
     co_await TMP {};
+    throw std::logic_error("test exception");
     co_return g_index;
 }
 
 Task<> usage_example()
 {
-    int lineCount = co_await count_lines();
-    std::cout << "line count = " << lineCount << std::endl;
+    throw std::logic_error("test first exception");
+    try {
+        int lineCount = co_await count_lines();
+        std::cout << "line count = " << lineCount << std::endl;
+    } catch (const std::exception& ex) {
+        LOG_ERROR << ex.what();
+    }
 }
 
 int main()
@@ -51,7 +57,7 @@ int main()
     net::TimerEvent::Ptr done(new net::TimerEvent(5000, false, [&]() { executor.stop(); }));
     executor.getTimer()->addTimerEvent(done);
     std::thread t([&]() {
-        for (int i = 0; i < 100; ++i) {
+        for (int i = 0; i < 1000; ++i) {
             executor.addTask(usage_example());
         };
         LOG_DEBUG << "end";

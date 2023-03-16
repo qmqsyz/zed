@@ -58,9 +58,10 @@ namespace net {
         if (m_stop_flag == false) {
             stop();
         }
-        ::close(m_epoll_fd);
-        ::close(m_wake_fd);
+        // first timer,second wake_fd ,final epoll_fd;
         m_timer.reset();
+        ::close(m_wake_fd);
+        ::close(m_epoll_fd);
 
         t_executor = nullptr;
         LOG_DEBUG << "~Executor";
@@ -160,25 +161,27 @@ namespace net {
     {
         auto handle = task.getHandle();
         task.detach();
-        {
-            std::lock_guard lock(m_handles_mutex);
-            m_init_handles.emplace_back(std::move(handle));
-        }
-        // LOG_DEBUG << "add a task";
+        auto func = [handle = std::move(handle)]() { handle.resume(); };
+        addTask(func, is_wakeup);
+        // {
+        //     std::lock_guard lock(m_handles_mutex);
+        //     m_init_handles.emplace_back(std::move(handle));
+        // }
+        // // LOG_DEBUG << "add a task";
+        // if (is_wakeup) [[likely]] {
+        //     wakeup();
+        // }
+    }
+
+    void Executor::addTask(std::function<void()> task, bool is_wakeup)
+    {
+        std::lock_guard lock(m_mutex);
+        m_pendding_tasks.emplace_back(std::move(task));
+        // LOG_DEBUG << "add task successfully";
         if (is_wakeup) [[likely]] {
             wakeup();
         }
     }
-
-    // void Executor::addTask(std::function<void()> task, bool is_wakeup)
-    // {
-    //     std::lock_guard lock(m_mutex);
-    //     m_pendding_tasks.emplace_back(std::move(task));
-    //     LOG_DEBUG << "add task successfully";
-    //     if (is_wakeup) [[likely]] {
-    //         wakeup();
-    //     }
-    // }
 
     void Executor::start()
     {
@@ -198,7 +201,7 @@ namespace net {
         LOG_DEBUG << "executor start!";
         while (m_stop_flag == false) {
 
-            doInitHandle();
+            // doInitHandle();
 
             consumePenddingTasks();
             // LOG_DEBUG << "finished consumePenddingTask";
@@ -252,7 +255,7 @@ namespace net {
                 consumeCoroutines();
             }
 
-            destroyHanlde();
+            // destroyHanlde();
         }
     }
 
@@ -286,7 +289,6 @@ namespace net {
                 ptr->setExecutor(this);
                 auto handle = ptr->getHandle();
                 handle.resume();
-                // LOG_DEBUG << "resume a handle fd [ " << ptr->getFd() << " ]";
             }
         }
     }
@@ -299,38 +301,10 @@ namespace net {
             tasks.swap(m_pendding_tasks);
         }
         for (const auto& task : tasks) {
-            task();
-        }
-    }
-
-    void Executor::doInitHandle()
-    {
-        std::vector<std::coroutine_handle<>> handle_tmp;
-        {
-            std::lock_guard lock(m_handles_mutex);
-            handle_tmp.swap(m_init_handles);
-        }
-
-        for (auto handle : handle_tmp) {
-            // LOG_DEBUG << "resun a handle";
-            handle.resume();
-            if (handle.done()) {
-                handle.destroy();
-            } else {
-                m_remain_handles.push_back(handle);
-            }
-        }
-    }
-
-    // do not lock only loop can execute the func
-    void Executor::destroyHanlde()
-    {
-        for (auto it = m_remain_handles.begin(); it != m_remain_handles.end();) {
-            if (it->done()) {
-                it->destroy();
-                it = m_remain_handles.erase(it);
-            } else {
-                ++it;
+            try {
+                task();
+            } catch (const std::exception& ex) {
+                LOG_ERROR << ex.what();
             }
         }
     }

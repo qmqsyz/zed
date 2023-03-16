@@ -76,18 +76,19 @@ namespace net {
         Socket    socket(fd);
         TcpBuffer input_buffer;
         TcpBuffer output_buffer;
+        bool      close_flag = false;
 
-        while (!m_is_stop) {
+        while (!close_flag) {
             {
-                char         extrabuf[65536];
+                char         extra_buffer[65536];
                 struct iovec vec[2];
 
                 const auto writable = input_buffer.writableBytes();
                 vec[0].iov_base = input_buffer.beginWrite();
                 vec[0].iov_len = writable;
-                vec[1].iov_base = extrabuf;
-                vec[1].iov_len = sizeof(extrabuf);
-                const int iovcount = (writable < sizeof(extrabuf)) ? 2 : 1;
+                vec[1].iov_base = extra_buffer;
+                vec[1].iov_len = sizeof(extra_buffer);
+                const int iovcount = (writable < sizeof(extra_buffer)) ? 2 : 1;
                 auto      ret = co_await socket.readv(vec, iovcount);
 
                 if (ret <= 0) {
@@ -95,11 +96,11 @@ namespace net {
                 } else if (ret < writable) {
                     input_buffer.hasWritten(ret);
                 } else {
-                    input_buffer.append(extrabuf, ret - writable);
+                    input_buffer.append(extra_buffer, ret - writable);
                 }
             }
 
-            m_message_callback(input_buffer, output_buffer);
+            m_message_callback(input_buffer, output_buffer, close_flag);
 
             while (true) {
                 if (output_buffer.readableBytes() == 0) {
